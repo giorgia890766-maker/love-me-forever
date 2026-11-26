@@ -66,8 +66,8 @@ const stage=$('stage'),cam=$('camera'),msg=$('message'),status=$('status'),cake=
 const sceneNames=['CAKE','LOVE','CANDLE','MEMORIES','FUTURE'];let scene=0;let hand=null,lastHand=null,photos=[],photoIndex=0,stream=null,micStream=null,analyser=null,recorder=null,recordParts=[],lastSwipe=0,lastBlow=0,isDrawing=false,lastPoint=null,canvasCtx=null,handModel=null,modelReady=false,detectBusy=false,videoLastTime=-1,sceneEntered=0;let lastPinch=false,swipeAnchor=null,pinchAnchor=null,photoUrls=[];
 let candleState='ready', candleLitAt=0, micState='off', micContext=null, blowStart=null;
 const futureText='The Best Is Yet to Come.';
-const info=[['Make a Wish.','Raise your palm to summon your birthday cake.'],['Love Me Forever?','Point to your answer.'],['Light a Candle.','Pinch your fingers together to light it; then blow into your microphone.'],['Birthday Memories.','Swipe to browse, or choose Write on the Glass to continue.'],[futureText,'Write on the misted glass.']];
-function say(text){msg.textContent=text}function setScene(n){scene=Math.max(0,Math.min(4,n));sceneEntered=performance.now();stage.dataset.scene=scene;$('next').textContent=scene===3?'WRITE ON THE GLASS →':'NEXT';$('next').classList.toggle('secondary',scene!==3);resetCandle();if(scene===2){cake.style.left='50%';cake.style.top='65%'}if(scene===4)paintFog();$('photoBack').hidden=$('photoNext').hidden=scene!==3;$('next').hidden=scene===4;swipeAnchor=null;pinchAnchor=null;isDrawing=false;lastPoint=null;lastPinch=false;const [t,d]=info[scene];$('headline').textContent=t;$('description').textContent=d;cake.classList.toggle('show',scene===0||scene===2);choice.classList.toggle('show',scene===1);memory.style.display=scene===3?'block':'none';drawing.style.display=scene===4?'block':'none';$('uploadLabel').hidden=scene!==3;$('clear').classList.toggle('hidden',scene!==4);flame.classList.toggle('on',scene===2&&flame.dataset.lit==='true');if(scene===0){flame.dataset.lit='false';flame.classList.remove('on')}if(scene===3){renderPhotos();if(!stream)status.textContent='TAP TO PLAY'}if(scene===4)status.textContent='WRITE ON THE GLASS';say(['Show your palm to reveal the cake.','Point to YES to celebrate yourself.','Pinch to light, then blow out the candle.','Swipe left or right to browse the album.','Drag your finger or mouse to draw. With the camera on, pinch and move your hand.'][scene])}
+const info=[['Make a Wish.','Raise your palm to summon your birthday cake.'],['Love Me Forever?','Point to your answer.'],['Light a Candle.','Pinch your fingers together to light it; then blow into your microphone.'],['Birthday Memories.','Pinch, drag sideways and release. You can also swipe the screen.'],[futureText,'Write on the misted glass.']];
+function say(text){msg.textContent=text}function setScene(n){scene=Math.max(0,Math.min(4,n));sceneEntered=performance.now();cancelHandDrag();stage.dataset.scene=scene;$('next').textContent=scene===3?'WRITE ON THE GLASS →':'NEXT';$('next').classList.toggle('secondary',scene!==3);resetCandle();if(scene===2){cake.style.left='50%';cake.style.top='65%'}if(scene===4)paintFog();$('photoBack').hidden=$('photoNext').hidden=scene!==3;$('next').hidden=scene===4;swipeAnchor=null;pinchAnchor=null;isDrawing=false;lastPoint=null;lastPinch=false;const [t,d]=info[scene];$('headline').textContent=t;$('description').textContent=d;cake.classList.toggle('show',scene===0||scene===2);choice.classList.toggle('show',scene===1);memory.style.display=scene===3?'block':'none';drawing.style.display=scene===4?'block':'none';$('uploadLabel').hidden=scene!==3;$('clear').classList.toggle('hidden',scene!==4);flame.classList.toggle('on',scene===2&&flame.dataset.lit==='true');if(scene===0){flame.dataset.lit='false';flame.classList.remove('on')}if(scene===3){renderPhotos();if(!stream)status.textContent='TAP TO PLAY'}if(scene===4)status.textContent='WRITE ON THE GLASS';say(['Show your palm to reveal the cake.','Point to YES to celebrate yourself.','Pinch to light, then blow out the candle.','Swipe left or right to browse the album.','Drag your finger or mouse to draw. With the camera on, pinch and move your hand.'][scene])}
 function paintFog(){
   canvasCtx.globalCompositeOperation='source-over';
   canvasCtx.clearRect(0,0,innerWidth,innerHeight);
@@ -168,8 +168,14 @@ function turnPhoto(direction){
   say('Photo '+(photoIndex+1)+' of '+photos.length+' · Swipe to browse');
 }
 function dragOffset(value){memory.style.setProperty('--drag',value+'px')}
+function cancelHandDrag(){
+  if(!swipeAnchor)return;
+  swipeAnchor=null;
+  if(!drag){memory.classList.remove('dragging');dragOffset(0)}
+}
 memory.onpointerdown=e=>{
   if(!e.isPrimary||e.button!==0)return;
+  cancelHandDrag();
   drag={id:e.pointerId,x:e.clientX,y:e.clientY,at:performance.now()};
   memory.setPointerCapture(e.pointerId);
   memory.classList.add('dragging');
@@ -202,7 +208,7 @@ function gesture(landmarks) {
     cursor.style.display = 'none';
     cursor.style.boxShadow = '';
     hand = null;
-    swipeAnchor = null;
+    cancelHandDrag();
     lastPinch = false;
     pinchAnchor = null;
     lastPoint = null;
@@ -355,15 +361,25 @@ function gesture(landmarks) {
     }
 
   } else if (scene === 3) {
-    if (!swipeAnchor) swipeAnchor = {x, time: now};
-
-    if (!drag && Math.abs(x - swipeAnchor.x) > Math.min(90, innerWidth * .19) &&
-        now - lastSwipe > 450) {
-      turnPhoto(x < swipeAnchor.x ? 1 : -1);
-      lastSwipe = now;
-      swipeAnchor = {x, time: now};
-    } else if (now - swipeAnchor.time > 650) {
-      swipeAnchor = {x, time: now};
+    if (drag) {
+      swipeAnchor = null;
+    } else if (!pinch) {
+      if (swipeAnchor) {
+        const dx = swipeAnchor.offset;
+        cancelHandDrag();
+        if (Math.abs(dx) >= Math.min(84, innerWidth * .15)) {
+          turnPhoto(dx < 0 ? 1 : -1);
+        }
+      }
+    } else if (!lastPinch && gesture.ready) {
+      const midpoint = map({x:(pt.x+thumb.x)/2,y:(pt.y+thumb.y)/2});
+      swipeAnchor = {x:midpoint.x, offset:0};
+      memory.classList.add('dragging');
+    } else if (swipeAnchor) {
+      const midpoint = map({x:(pt.x+thumb.x)/2,y:(pt.y+thumb.y)/2});
+      const target = Math.max(-180, Math.min(180, midpoint.x-swipeAnchor.x));
+      swipeAnchor.offset += (target-swipeAnchor.offset)*.4;
+      dragOffset(swipeAnchor.offset);
     }
 
   } else if (scene === 4) {
