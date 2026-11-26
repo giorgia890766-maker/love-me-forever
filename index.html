@@ -24,6 +24,11 @@
 .memories.dragging .photo,.memories .photo.reposition{transition:none}
 @media(max-height:580px){.memories{inset:27% 0 32%}}
 @media(prefers-reduced-motion:reduce){.memories .photo{transition:none}}
+.music{position:absolute;z-index:10;top:max(49px,calc(env(safe-area-inset-top) + 32px));right:16px;width:min(340px,calc(100% - 32px));text-align:right}
+.music summary{display:inline-block;list-style:none;cursor:pointer;background:#14271ded;color:#fff2df;border:1px solid #fff2df65;border-radius:30px;padding:8px 13px;font-size:11px}
+.music summary::-webkit-details-marker{display:none}
+.music iframe{display:block;width:100%;height:175px;border:0;border-radius:12px;margin-top:8px;background:#fff}
+.music a{display:inline-block;color:#fff2df;background:#14271d;border-radius:12px;padding:4px 9px;font-size:11px;margin-top:5px}
 </style>
 </head>
 <body>
@@ -31,11 +36,22 @@
 <video class="camera" id="camera" autoplay playsinline muted></video>
 <div class="veil"></div>
 <header class="topbar"><span class="brand">LOVE ME FOREVER.</span><span class="status" id="status">CAMERA OFF</span></header>
+<details class="music" id="music">
+<summary>♫ Moments</summary>
+<iframe title="Moments (feat. Leo Stannard) by Kidnap on Apple Music" data-source="https://embed.music.apple.com/us/song/moments-feat-leo-stannard/1478295517" allow="autoplay; encrypted-media" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+<a href="https://kidnap-music.bandcamp.com/track/moments-ft-leo-stannard-2" target="_blank" rel="noopener">Listen on Bandcamp</a>
+</details>
 <section class="welcome" id="welcome"><div class="eyebrow">AN INTERACTIVE BIRTHDAY STORY</div><h1>Happy Birthday<br><i>to Me.</i></h1><p class="subtitle">A little ritual for everything I've been, everyone I love, and everything still to come.</p><button class="btn" id="start">BEGIN THE EXPERIENCE</button><button class="btn secondary" id="manualStart" style="margin-top:12px">PLAY WITHOUT CAMERA</button><div class="hint">Use your camera for hand gestures, or play with clicks and taps.</div></section>
 <div class="overlay" id="overlay"><div class="artwork"><div class="bubble"></div><div class="cake" id="cake"><div class="plate"></div><div class="base"></div><div class="icing"></div><div class="tree a"></div><div class="tree b"></div><div class="tree c"></div><div class="candle"></div><div class="flame" id="flame"></div></div><div class="choice" id="choice"><button class="btn" id="yes">YES, ALWAYS</button><button class="btn secondary" id="no">NO</button></div><div class="memories" id="memories"></div></div><div class="chapter"><h2 id="headline">Make a Wish.</h2><p id="description">Raise your palm to summon your birthday cake.</p></div><canvas class="drawCanvas" id="drawing"></canvas><div class="cursor" id="cursor"></div><div class="message" id="message" aria-live="polite">Loading hand-tracking model…</div><div class="controls"><button class="btn secondary" id="prev">BACK</button><button class="btn secondary" id="next">NEXT</button><button class="btn secondary" id="candleAction" hidden>LIGHT CANDLE</button><button class="btn secondary" id="photoBack" hidden>PREVIOUS PHOTO</button><button class="btn secondary" id="photoNext" hidden>NEXT PHOTO</button><button class="btn secondary" id="uploadLabel" hidden>ADD PHOTOS</button><input class="upload" type="file" id="photos" accept="image/*" multiple/><button class="btn secondary" id="record">● RECORD</button><button class="btn secondary hidden" id="clear">CLEAR WRITING</button></div></div>
 </main>
 <script type="module">
-const $=id=>document.getElementById(id);const stage=$('stage'),cam=$('camera'),msg=$('message'),status=$('status'),cake=$('cake'),flame=$('flame'),choice=$('choice'),memory=$('memories'),drawing=$('drawing'),cursor=$('cursor');
+const $=id=>document.getElementById(id);
+const music=$('music');
+music.addEventListener('toggle',()=>{
+  const player=music.querySelector('iframe');
+  if(music.open&&!player.hasAttribute('src'))player.src=player.dataset.source;
+});
+const stage=$('stage'),cam=$('camera'),msg=$('message'),status=$('status'),cake=$('cake'),flame=$('flame'),choice=$('choice'),memory=$('memories'),drawing=$('drawing'),cursor=$('cursor');
 const sceneNames=['CAKE','LOVE','CANDLE','MEMORIES','FUTURE'];let scene=0;let hand=null,lastHand=null,photos=[],photoIndex=0,stream=null,micStream=null,analyser=null,recorder=null,recordParts=[],lastSwipe=0,lastBlow=0,isDrawing=false,lastPoint=null,canvasCtx=null,handModel=null,modelReady=false,detectBusy=false,videoLastTime=-1,sceneEntered=0;let lastPinch=false,swipeAnchor=null,pinchAnchor=null,photoUrls=[];
 let candleState='ready', candleLitAt=0, micState='off', micContext=null, blowStart=null;
 const futureText='The Best Is Yet to Come.';
