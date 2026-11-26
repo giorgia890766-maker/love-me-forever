@@ -175,16 +175,65 @@ function gesture(landmarks) {
       flame.classList.remove('on');
     }
 
-  } else if (scene === 2) {
+   } else if (scene === 2) {
     cake.classList.add('show');
 
-    if (flame.dataset.lit !== 'true') {
-      say('Release, then hold your pinch to light the candle.');
+    flame.style.zIndex = '100';
+    flame.style.width = '18px';
+    flame.style.height = '30px';
+    flame.style.left = '108px';
+    flame.style.bottom = '182px';
+    flame.style.borderRadius = '50% 50% 45% 45%';
+    flame.style.transform = 'none';
 
-      if (confirmHold(true)) {
+    if (flame.dataset.lit !== 'true') {
+      flame.style.display = 'none';
+
+      status.textContent = 'V1.4 · CANDLE READY';
+
+      say('Release your fingers, then pinch to light.');
+
+      if (confirmHold(true, 450)) {
         flame.dataset.lit = 'true';
         flame.classList.add('on');
-        lastBlow = Date.now() + 2500;
+        lastBlow = Date.now() + 4000;
+
+        flame.style.background =
+          'radial-gradient(ellipse at 50% 75%, #ffffff 5%, #fff2ae 30%, #ffbd48 65%, #ff7518 100%)';
+
+        flame.style.boxShadow =
+          '0 0 18px #ffd27a, 0 0 45px #ffae55, 0 0 80px #ffb45a';
+
+        flame.style.display = 'block';
+
+        status.textContent = 'V1.4 · CANDLE LIT';
+        say('Candle lit! Make a wish.');
+
+        if (flame.animate) {
+          flame.animate([
+            { transform: 'scale(1, 1)' },
+            { transform: 'scale(0.85, 1.12)' },
+            { transform: 'scale(1.08, 0.94)' },
+            { transform: 'scale(1, 1)' }
+          ], {
+            duration: 650,
+            iterations: Infinity
+          });
+        }
+      }
+
+    } else {
+      flame.style.display = 'block';
+      status.textContent = 'V1.4 · CANDLE LIT';
+
+      if (Date.now() - lastBlow > 1000) {
+        say('Now blow gently into your microphone.');
+      } else {
+        say('Make a wish. Keep quiet for a moment.');
+      }
+    }
+
+ lastBlow = Date.now() + 2500;
 
         flame.style.background =
           'radial-gradient(ellipse at center, #fff9d7, #ffbf54 55%, #ff7b24)';
