@@ -323,7 +323,160 @@ async function tracking(){
 }
 
 function detect(){if(!stage.classList.contains('live'))return;try{if(modelReady&&cam.readyState>=2&&cam.currentTime!==videoLastTime){videoLastTime=cam.currentTime;const result=handModel.detectForVideo(cam,performance.now());gesture(result.landmarks)}}catch(e){console.warn('Tracking error',e)}requestAnimationFrame(detect)}
-async function microphone(){try{micStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});let ctx=new(window.AudioContext||window.webkitAudioContext)();let source=ctx.createMediaStreamSource(micStream);analyser=ctx.createAnalyser();analyser.fftSize=1024;source.connect(analyser);let a=new Uint8Array(analyser.fftSize);let blows=0;function listen(){if(!stage.classList.contains('live'))return;analyser.getByteTimeDomainData(a);let sum=0;for(let i=0;i<a.length;i++){let v=(a[i]-128)/128;sum+=v*v}const rms=Math.sqrt(sum/a.length);if(scene===2&&flame.dataset.lit==='true'&&Date.now()-lastBlow>1000){blows=rms>.10?blows+1:Math.max(0,blows-1);if(blows>=7){flame.dataset.lit='false';flame.classList.remove('on');lastBlow=Date.now();blows=0;say('Wish made! Your birthday memories are next.');setTimeout(()=>{if(scene===2)setScene(3)},1200)}}requestAnimationFrame(listen)}listen()}catch(e){say('Microphone unavailable — use NEXT to continue after lighting.')}}
+async function microphone() {
+  try {
+    micStream = await navigator.mediaDevices.getUserMedia({
+      audio: {
+        echoCancellation: false,
+        noiseSuppression: false,
+        autoGainControl: false
+      }
+    });
+
+    const ctx = new (
+      window.AudioContext || window.webkitAudioContext
+    )();
+
+    await ctx.resume();
+
+    const source = ctx.createMediaStreamSource(micStream);
+
+    analyser = ctx.createAnalyser();
+    analyser.fftSize = 2048;
+    source.connect(analyser);
+
+    const samples = new Float32Array(analyser.fftSize);
+
+    let noiseFloor = 0.008;
+    let blowTime = 0;
+    let previousTime = performance.now();
+
+    const meter = document.createElement('div');
+
+    Object.assign(meter.style, {
+      position: 'fixed',
+      right: '24px',
+      bottom: '100px',
+      padding: '10px 14px',
+      background: 'rgba(15,35,25,.85)',
+      color: '#fff2df',
+      borderRadius: '20px',
+      fontSize: '12px',
+      zIndex: '9999',
+      display: 'none',
+      pointerEvents: 'none'
+    });
+
+    document.body.appendChild(meter);
+
+    function listen() {
+      if (!stage.classList.contains('live')) return;
+
+      const now = performance.now();
+      const dt = Math.min(now - previousTime, 50);
+      previousTime = now;
+
+      analyser.getFloatTimeDomainData(samples);
+
+      let sum = 0;
+
+      for (let i = 0; i < samples.length; i++) {
+        sum += samples[i] * samples[i];
+      }
+
+      const rms = Math.sqrt(sum / samples.length);
+
+      const active =
+        scene === 2 &&
+        flame.dataset.lit === 'true';
+
+      const armed =
+        active && Date.now() - lastBlow > 1000;
+
+      if (!armed) {
+        noiseFloor =
+          noiseFloor * 0.98 +
+          Math.min(rms, 0.035) * 0.02;
+
+        blowTime = 0;
+      }
+
+      const threshold = Math.max(
+        0.025,
+        noiseFloor * 3.2
+      );
+
+      meter.style.display =
+        scene === 2 ? 'block' : 'none';
+
+      if (scene === 2) {
+        meter.textContent =
+          'MIC · ' +
+          Math.round(rms * 1000) +
+          ' / ' +
+          Math.round(threshold * 1000) +
+          (armed ? ' · READY' : ' · WAIT');
+      }
+
+      if (armed) {
+        if (rms > threshold) {
+          blowTime += dt;
+        } else {
+          blowTime = Math.max(0, blowTime - dt * 2);
+        }
+
+        if (blowTime > 0) {
+          meter.textContent =
+            'BLOW · ' +
+            Math.min(100, Math.round(blowTime / 350 * 100)) +
+            '%';
+        }
+
+        if (blowTime >= 350) {
+          blowTime = 0;
+
+          const entry = sceneEntered;
+
+          gesture.candleState = 'extinguished';
+
+          flame.dataset.lit = 'false';
+          flame.classList.remove('on');
+
+          flame.getAnimations().forEach(
+            animation => animation.cancel()
+          );
+
+          flame.style.display = 'none';
+          flame.style.opacity = '0';
+          flame.style.boxShadow = 'none';
+
+          status.textContent = 'V1.5 · WISH MADE';
+
+          meter.textContent = 'CANDLE EXTINGUISHED';
+
+          say('Wish made!');
+
+          setTimeout(() => {
+            flame.style.opacity = '';
+
+            if (scene === 2 && sceneEntered === entry) {
+              setScene(3);
+            }
+          }, 1500);
+        }
+      }
+
+      requestAnimationFrame(listen);
+    }
+
+    listen();
+
+  } catch (error) {
+    console.error('Microphone error:', error);
+    say('Microphone unavailable. Check permissions.');
+  }
+}
+
 async function start(){if(!navigator.mediaDevices?.getUserMedia){alert('Camera requires HTTPS or localhost, and a compatible browser.');return}try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:{ideal:1280},height:{ideal:720}},audio:false});cam.srcObject=stream;await cam.play();stage.classList.add('live');$('welcome').classList.add('hidden');status.textContent='● CAMERA LIVE';status.classList.add('active');setScene(0);tracking();microphone();requestAnimationFrame(detect)}catch(e){alert('Could not access camera: '+e.message+'. Check browser permissions and HTTPS.')}}$('start').onclick=start;$('next').onclick=()=>setScene(scene+1);$('prev').onclick=()=>setScene(scene-1);$('yes').onclick=()=>setScene(2);$('no').onmouseenter=()=>{$('no').style.transform=`translate(${Math.random()*160-80}px,${Math.random()*110-55}px)`};$('clear').onclick=()=>{canvasCtx.clearRect(0,0,innerWidth,innerHeight);lastPoint=null};
 function recordCanvas(){const c=document.createElement('canvas');const ctx=c.getContext('2d');c.width=720;c.height=1280;const scale=Math.max(c.width/innerWidth,c.height/innerHeight);function frame(){if(!recorder||recorder.state==='inactive')return;ctx.fillStyle='#14271d';ctx.fillRect(0,0,c.width,c.height);ctx.save();if(cam.readyState>=2){const cameraScale=Math.max(c.width/cam.videoWidth,c.height/cam.videoHeight);ctx.translate(c.width,0);ctx.scale(-1,1);ctx.drawImage(cam,(c.width-cam.videoWidth*cameraScale)/2,(c.height-cam.videoHeight*cameraScale)/2,cam.videoWidth*cameraScale,cam.videoHeight*cameraScale);}ctx.restore();ctx.fillStyle='#fff2df';ctx.textAlign='center';ctx.font='20px Georgia';ctx.fillText('LOVE ME FOREVER.',c.width/2,65);ctx.font='48px Georgia';ctx.fillText(info[scene][0],c.width/2,180);if(scene===4){ctx.drawImage(drawing,0,0,c.width,c.height)}requestAnimationFrame(frame)}return{canvas:c,frame}}
 // Recording currently exports the camera and handwritten strokes; CSS/DOM overlays are not captured. Warn users rather than implying full composite capture.
