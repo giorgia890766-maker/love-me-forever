@@ -40,17 +40,13 @@
 .stage[data-scene="3"] .controls .btn{min-width:0;padding:10px 13px}
 .stage[data-scene="3"] #record{display:none}
 @media(max-height:440px){.stage[data-scene="3"] .chapter{padding-top:48px}.stage[data-scene="3"] .memories{inset:108px 0 65px}.stage[data-scene="3"] .chapter p{display:none}}
-.future-prompt{position:absolute;z-index:5;left:0;right:0;top:39%;text-align:center;pointer-events:none;color:#fff2df;font:italic clamp(28px,7vw,65px)/1.35 Georgia,serif;text-shadow:0 2px 15px #11261a;display:none}
-.stage[data-scene="4"] .future-prompt{display:block}.future-prompt span{display:inline-block;width:2.5em;border-bottom:1px solid #fff2df9c}
 .stage[data-scene="3"] .memories{touch-action:none;pointer-events:auto;z-index:1}
 .stage[data-scene="3"] .photo{transition:transform .52s cubic-bezier(.2,.76,.22,1),opacity .42s ease}
 .stage[data-scene="3"] .memories.dragging .photo,.stage[data-scene="3"] .photo.reposition{transition:none}
-.mirror-surface{display:none;position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(135deg,#122622,#38504e 42%,#1d3037 62%,#0b1b22)}
+.mirror-surface{display:none;position:absolute;inset:0;z-index:1;pointer-events:none;background:radial-gradient(ellipse at 64% 17%,#76a9bf,#325d7d 37%,#172e51 70%,#0c1831)}
 .stage[data-scene="4"] .mirror-surface{display:block}
 .mirror-surface::after{content:'';position:absolute;inset:0;background:linear-gradient(115deg,transparent 25%,#b0d3df38 47%,transparent 66%);background-size:220% 100%;animation:mirror-light 12s ease-in-out infinite alternate}
 .stage[data-scene="4"] .drawCanvas{animation:glass-condense .9s ease-out both}
-.stage[data-scene="4"] .future-prompt{color:#263b3c;text-shadow:0 1px 8px #eaffff80}
-.stage[data-scene="4"] .future-prompt span{border-color:#263b3c80}
 @keyframes mirror-light{from{background-position:0% center}to{background-position:100% center}}
 @keyframes glass-condense{from{opacity:0}to{opacity:1}}
 @media(prefers-reduced-motion:reduce){.stage[data-scene="3"] .photo{transition:none}.mirror-surface::after,.stage[data-scene="4"] .drawCanvas{animation:none}}
@@ -67,7 +63,7 @@
 <a href="https://kidnap-music.bandcamp.com/track/moments-ft-leo-stannard-2" target="_blank" rel="noopener">Listen on Bandcamp</a>
 </details>
 <section class="welcome" id="welcome"><div class="eyebrow">AN INTERACTIVE BIRTHDAY STORY</div><h1>Happy Birthday<br><i>to Me.</i></h1><p class="subtitle">A little ritual for everything I've been, everyone I love, and everything still to come.</p><button class="btn" id="start">BEGIN THE EXPERIENCE</button><button class="btn secondary" id="manualStart" style="margin-top:12px">PLAY WITHOUT CAMERA</button><div class="hint">Use your camera for hand gestures, or play with clicks and taps.</div></section>
-<div class="overlay" id="overlay"><div class="artwork"><div class="bubble"></div><div class="cake" id="cake"><div class="plate"></div><div class="base"></div><div class="icing"></div><div class="tree a"></div><div class="tree b"></div><div class="tree c"></div><div class="candle"></div><div class="flame" id="flame"></div></div><div class="choice" id="choice"><button class="btn" id="yes">YES, ALWAYS</button><button class="btn secondary" id="no">NO</button></div><div class="memories" id="memories"></div></div><div class="chapter"><h2 id="headline">Make a Wish.</h2><p id="description">Raise your palm to summon your birthday cake.</p></div><div class="mirror-surface" aria-hidden="true"></div><div class="future-prompt" aria-label="The blank is yet to come">The <span></span> Is<br>Yet to Come.</div><canvas class="drawCanvas" id="drawing"></canvas><div class="cursor" id="cursor"></div><div class="message" id="message" aria-live="polite">Loading hand-tracking model…</div><div class="controls"><button class="btn secondary" id="prev">BACK</button><button class="btn secondary" id="next">NEXT</button><button class="btn secondary" id="candleAction" hidden>LIGHT CANDLE</button><button class="btn secondary" id="photoBack" hidden>PREVIOUS PHOTO</button><button class="btn secondary" id="photoNext" hidden>NEXT PHOTO</button><button class="btn secondary" id="uploadLabel" hidden>ADD PHOTOS</button><input class="upload" type="file" id="photos" accept="image/*" multiple/><button class="btn secondary" id="record">● RECORD</button><button class="btn secondary hidden" id="clear">CLEAR WRITING</button></div></div>
+<div class="overlay" id="overlay"><div class="artwork"><div class="bubble"></div><div class="cake" id="cake"><div class="plate"></div><div class="base"></div><div class="icing"></div><div class="tree a"></div><div class="tree b"></div><div class="tree c"></div><div class="candle"></div><div class="flame" id="flame"></div></div><div class="choice" id="choice"><button class="btn" id="yes">YES, ALWAYS</button><button class="btn secondary" id="no">NO</button></div><div class="memories" id="memories"></div></div><div class="chapter"><h2 id="headline">Make a Wish.</h2><p id="description">Raise your palm to summon your birthday cake.</p></div><div class="mirror-surface" aria-hidden="true"></div><canvas class="drawCanvas" id="drawing"></canvas><div class="cursor" id="cursor"></div><div class="message" id="message" aria-live="polite">Loading hand-tracking model…</div><div class="controls"><button class="btn secondary" id="prev">BACK</button><button class="btn secondary" id="next">NEXT</button><button class="btn secondary" id="candleAction" hidden>LIGHT CANDLE</button><button class="btn secondary" id="photoBack" hidden>PREVIOUS PHOTO</button><button class="btn secondary" id="photoNext" hidden>NEXT PHOTO</button><button class="btn secondary" id="uploadLabel" hidden>ADD PHOTOS</button><input class="upload" type="file" id="photos" accept="image/*" multiple/><button class="btn secondary" id="record">● RECORD</button><button class="btn secondary hidden" id="clear">CLEAR WRITING</button></div></div>
 </main>
 <script type="module">
 const $=id=>document.getElementById(id);
@@ -79,29 +75,71 @@ music.addEventListener('toggle',()=>{
 const stage=$('stage'),cam=$('camera'),msg=$('message'),status=$('status'),cake=$('cake'),flame=$('flame'),choice=$('choice'),memory=$('memories'),drawing=$('drawing'),cursor=$('cursor');
 const sceneNames=['CAKE','LOVE','CANDLE','MEMORIES','FUTURE'];let scene=0;let hand=null,lastHand=null,photos=[],photoIndex=0,stream=null,micStream=null,analyser=null,recorder=null,recordParts=[],lastSwipe=0,lastBlow=0,isDrawing=false,lastPoint=null,canvasCtx=null,handModel=null,modelReady=false,detectBusy=false,videoLastTime=-1,sceneEntered=0;let lastPinch=false,swipeAnchor=null,pinchAnchor=null,photoUrls=[];
 let candleState='ready', candleLitAt=0, micState='off', micContext=null, blowStart=null;
-const futureText='The ___ Is Yet to Come.';
+const futureText='Frosted Glass';
+const fogTexture=document.createElement('canvas');
+let lastWipe=-Infinity,fogFrame=0;
 const sceneOrder=[0,2,1,3,4];
 let albumTapTimer=null,albumPinchStarted=null;
 const info=[['Make a Wish.','Raise your palm to summon your birthday cake.'],['Love Me Forever?','Point to your answer.'],['Light a Candle.','Pinch your fingers together to light it; then blow into your microphone.'],['Birthday Memories.','Drag, swipe, or scroll to browse. In the air, pinch once to turn or twice to write.'],[futureText,'Write on the misted glass.']];
-function say(text){msg.textContent=text}function setScene(n){scene=Math.max(0,Math.min(4,n));sceneEntered=performance.now();wheelLast=-Infinity;clearTimeout(albumTapTimer);albumTapTimer=null;albumPinchStarted=null;cancelHandDrag();stage.dataset.scene=scene;$('next').textContent=scene===3?'WRITE ON THE GLASS →':'NEXT';$('next').classList.toggle('secondary',scene!==3);resetCandle();if(scene===2){cake.style.left='50%';cake.style.top='65%'}if(scene===4)paintFog();$('photoBack').hidden=$('photoNext').hidden=scene!==3;$('next').hidden=scene===4;swipeAnchor=null;pinchAnchor=null;isDrawing=false;lastPoint=null;lastPinch=false;const [t,d]=info[scene];$('headline').textContent=t;$('description').textContent=d;cake.classList.toggle('show',scene===0||scene===2);choice.classList.toggle('show',scene===1);memory.style.display=scene===3?'block':'none';drawing.style.display=scene===4?'block':'none';$('uploadLabel').hidden=scene!==3;$('clear').classList.toggle('hidden',scene!==4);flame.classList.toggle('on',scene===2&&flame.dataset.lit==='true');if(scene===0){flame.dataset.lit='false';flame.classList.remove('on')}if(scene===3){renderPhotos();if(!stream)status.textContent='TAP TO PLAY'}if(scene===4)status.textContent='WRITE ON THE GLASS';say(['Show your palm to reveal the cake.','Point to YES to celebrate yourself.','Pinch to light, then blow out the candle.','Swipe left or right to browse the album.','Wipe the fog to write BEST. Drag on the glass, or pinch and move your hand.'][scene])}
+function say(text){msg.textContent=text}function setScene(n){scene=Math.max(0,Math.min(4,n));sceneEntered=performance.now();wheelLast=-Infinity;clearTimeout(albumTapTimer);albumTapTimer=null;albumPinchStarted=null;cancelHandDrag();stage.dataset.scene=scene;$('next').textContent=scene===3?'FROSTED GLASS →':'NEXT';$('next').classList.toggle('secondary',scene!==3);resetCandle();if(scene===2){cake.style.left='50%';cake.style.top='65%'}if(scene===4)paintFog();$('photoBack').hidden=$('photoNext').hidden=scene!==3;$('next').hidden=scene===4;swipeAnchor=null;pinchAnchor=null;isDrawing=false;lastPoint=null;lastPinch=false;const [t,d]=info[scene];$('headline').textContent=t;$('description').textContent=d;cake.classList.toggle('show',scene===0||scene===2);choice.classList.toggle('show',scene===1);memory.style.display=scene===3?'block':'none';drawing.style.display=scene===4?'block':'none';$('uploadLabel').hidden=scene!==3;$('clear').classList.toggle('hidden',scene!==4);flame.classList.toggle('on',scene===2&&flame.dataset.lit==='true');if(scene===0){flame.dataset.lit='false';flame.classList.remove('on')}if(scene===3){renderPhotos();if(!stream)status.textContent='TAP TO PLAY'}if(scene===4)status.textContent='WRITE ON THE GLASS';say(['Show your palm to reveal the cake.','Point to YES to celebrate yourself.','Pinch to light, then blow out the candle.','Swipe left or right to browse the album.','Drag to draw on the ice, or pinch and move your hand.'][scene])}
 function paintFog(){
-  canvasCtx.globalCompositeOperation='source-over';
-  canvasCtx.clearRect(0,0,innerWidth,innerHeight);
-  const fog=canvasCtx.createLinearGradient(0,0,0,innerHeight);
-  fog.addColorStop(0,'rgba(166,188,190,.84)');
-  fog.addColorStop(.48,'rgba(221,235,227,.96)');
-  fog.addColorStop(1,'rgba(140,169,173,.84)');
-  canvasCtx.fillStyle=fog;
-  canvasCtx.fillRect(0,0,innerWidth,innerHeight);
-  for(let i=0;i<240;i++){
-    canvasCtx.beginPath();
-    canvasCtx.ellipse(Math.random()*innerWidth,Math.random()*innerHeight,1+Math.random()*2,2+Math.random()*5,0,0,Math.PI*2);
-    canvasCtx.fillStyle=i%2?'#e7fff62b':'#193b3030';
-    canvasCtx.fill();
+  cancelAnimationFrame(fogFrame);
+  fogFrame=0;
+  fogTexture.width=drawing.width;
+  fogTexture.height=drawing.height;
+  const mist=fogTexture.getContext('2d');
+  mist.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+  const frost=mist.createLinearGradient(0,0,innerWidth,innerHeight);
+  frost.addColorStop(0,'rgba(208,235,247,.97)');
+  frost.addColorStop(.52,'rgba(167,206,225,.92)');
+  frost.addColorStop(1,'rgba(228,243,252,.98)');
+  mist.fillStyle=frost;
+  mist.fillRect(0,0,innerWidth,innerHeight);
+  for(let i=0;i<100;i++){
+    const x=Math.random()*innerWidth,y=Math.random()*innerHeight;
+    const radius=28+Math.random()*105;
+    const cloud=mist.createRadialGradient(x,y,0,x,y,radius);
+    cloud.addColorStop(0,'#f4fbff29');
+    cloud.addColorStop(1,'#f4fbff00');
+    mist.fillStyle=cloud;
+    mist.fillRect(x-radius,y-radius,radius*2,radius*2);
   }
-
+  for(let i=0;i<Math.min(3700,innerWidth*innerHeight/145);i++){
+    const size=.25+Math.random()*1.7;
+    mist.fillStyle=i%3?'#ffffff68':'#335a6f40';
+    mist.fillRect(Math.random()*innerWidth,Math.random()*innerHeight,size,size);
+  }
+  for(let i=0;i<160;i++){
+    const x=Math.random()*innerWidth,y=Math.random()*innerHeight;
+    const size=.7+Math.random()*2.7;
+    mist.beginPath();
+    mist.ellipse(x,y,size,size*1.35,.18,0,Math.PI*2);
+    mist.fillStyle='#335e7650';
+    mist.fill();
+    mist.beginPath();
+    mist.ellipse(x-size*.22,y-size*.45,size*.48,size*.32,.18,0,Math.PI*2);
+    mist.fillStyle='#fafdffbd';
+    mist.fill();
+  }
+  canvasCtx.clearRect(0,0,innerWidth,innerHeight);
+  canvasCtx.drawImage(fogTexture,0,0,innerWidth,innerHeight);
+}
+function returnFog(now){
+  fogFrame=0;
+  if(scene!==4||now>lastWipe+10500)return;
+  if(now-lastWipe>3600){
+    canvasCtx.save();
+    canvasCtx.globalAlpha=.02;
+    canvasCtx.drawImage(fogTexture,0,0,innerWidth,innerHeight);
+    canvasCtx.restore();
+  }
+  fogFrame=requestAnimationFrame(returnFog);
 }
 function wipe(from,to){
+  lastWipe=performance.now();
+  if(!fogFrame&&!matchMedia('(prefers-reduced-motion: reduce)').matches){
+    fogFrame=requestAnimationFrame(returnFog);
+  }
   canvasCtx.save();
   canvasCtx.globalCompositeOperation='destination-out';
   canvasCtx.strokeStyle='#000';
