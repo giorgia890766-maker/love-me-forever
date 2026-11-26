@@ -233,17 +233,13 @@ function gesture(landmarks) {
       }
     }
 
- lastBlow = Date.now() + 2500;
-
-        flame.style.background =
-          'radial-gradient(ellipse at center, #fff9d7, #ffbf54 55%, #ff7b24)';
-        flame.style.boxShadow =
-          '0 0 20px #ffd27a, 0 0 60px #ffae55';
-
-        say('Candle lit! Make a wish, then blow.');
+      } else {
+        say('Make a wish. Keep quiet for a moment.');
       }
     }
 
+  } else if (scene === 3) {
+    if (!swipeAnchor) swipeAnchor = {x, time: now};
   } else if (scene === 3) {
     if (!swipeAnchor) swipeAnchor = {x, time: now};
 
