@@ -28,11 +28,16 @@ const demoCaptions=['With love','The birthday table','My favorite people','Forev
 function turnPhoto(direction){const count=photos.length||4;photoIndex=(photoIndex+direction+count)%count;renderPhotos();say(`Photo ${photoIndex+1} of ${count} · Swipe to browse`)}
 $('photos').addEventListener('change',e=>{photoUrls.forEach(URL.revokeObjectURL);photoUrls=[];const files=[...e.target.files].filter(x=>x.type.startsWith('image/')).slice(0,60);photos=files.map(f=>{const u=URL.createObjectURL(f);photoUrls.push(u);return u});photoIndex=0;renderPhotos();say(`${photos.length} personal photos loaded locally. Nothing was uploaded.`)});
 function gesture(landmarks) {
+  const now = performance.now();
+
   if (!landmarks || !landmarks.length) {
     cursor.style.display = 'none';
+    cursor.style.boxShadow = '';
     hand = null;
     lastPinch = false;
+    pinchAnchor = null;
     lastPoint = null;
+    gesture.ready = false;
     if (scene === 0) cake.classList.remove('show');
     return;
   }
@@ -65,61 +70,129 @@ function gesture(landmarks) {
   const center = map(palm);
   const palmSize = Math.max(distance(palm, wrist), 1);
   const ratio = distance(pt, thumb) / palmSize;
-
   const pinch = ratio < (lastPinch ? 0.55 : 0.35);
-  const newPinch = pinch && !lastPinch;
-  const now = performance.now();
+
+  if (gesture.scene !== scene ||
+      gesture.entered !== sceneEntered) {
+    gesture.scene = scene;
+    gesture.entered = sceneEntered;
+    gesture.ready = false;
+    pinchAnchor = null;
+  }
+
+  if (!pinch) {
+    gesture.ready = true;
+    pinchAnchor = null;
+  }
 
   cursor.style.display = 'block';
   cursor.style.left = x + 'px';
   cursor.style.top = y + 'px';
   cursor.style.background = pinch ? '#ffd78a' : 'transparent';
   cursor.style.borderColor = pinch ? '#ffd78a' : '#fff5de';
+  cursor.style.boxShadow = pinch
+    ? '0 0 20px #ffd78a'
+    : '';
 
-  status.textContent = 'V1.2 · ' + (pinch ? 'PINCH' : 'HAND DETECTED');
+  status.textContent = 'V1.3 · ' +
+    (pinch ? 'PINCH' : 'HAND DETECTED');
+
+  function confirmHold(valid, duration = 450) {
+    if (!valid || !pinch || !gesture.ready) {
+      pinchAnchor = null;
+      return false;
+    }
+
+    if (pinchAnchor === null) pinchAnchor = now;
+
+    const progress = Math.min(
+      100,
+      Math.round((now - pinchAnchor) / duration * 100)
+    );
+
+    status.textContent = 'V1.3 · CONFIRM ' + progress + '%';
+
+    if (progress >= 100) {
+      gesture.ready = false;
+      pinchAnchor = null;
+      return true;
+    }
+
+    return false;
+  }
 
   if (scene === 0) {
     cake.classList.add('show');
 
-    const targetX = Math.max(120, Math.min(innerWidth - 120, center.x));
-    const targetY = Math.max(120, Math.min(innerHeight - 120, center.y - 110));
+    const targetX = Math.max(
+      120, Math.min(innerWidth - 120, center.x)
+    );
+    const targetY = Math.max(
+      120, Math.min(innerHeight - 120, center.y - 110)
+    );
 
     const oldX = parseFloat(cake.style.left) || targetX;
     const oldY = parseFloat(cake.style.top) || targetY;
 
-    cake.style.left = (oldX + (targetX - oldX) * 0.25) + 'px';
-    cake.style.top = (oldY + (targetY - oldY) * 0.25) + 'px';
+    cake.style.left =
+      (oldX + (targetX - oldX) * 0.25) + 'px';
+    cake.style.top =
+      (oldY + (targetY - oldY) * 0.25) + 'px';
 
-    say('Hand detected · Move your hand. Pinch to continue.');
+    say('Hold your pinch to continue.');
 
-    if (newPinch && now - sceneEntered > 1000) {
+    if (confirmHold(true)) {
       setScene(1);
+      gesture.ready = false;
     }
 
   } else if (scene === 1) {
     const r = $('yes').getBoundingClientRect();
     const nr = $('no').getBoundingClientRect();
 
-    if (x > nr.left - 35 && x < nr.right + 35 &&
+    const overYes =
+      x > r.left - 65 && x < r.right + 65 &&
+      y > r.top - 55 && y < r.bottom + 55;
+
+    if (!overYes &&
+        x > nr.left - 35 && x < nr.right + 35 &&
         y > nr.top - 30 && y < nr.bottom + 30) {
       $('no').style.transform =
-        'translate(' + (Math.random() * 160 - 80) + 'px,' +
-        (Math.random() * 100 - 50) + 'px)';
+        'translate(' + (Math.random() * 160 - 80) +
+        'px,' + (Math.random() * 100 - 50) + 'px)';
     }
 
-    if (newPinch &&
-        x > r.left - 55 && x < r.right + 55 &&
-        y > r.top - 50 && y < r.bottom + 50) {
+    say(overYes
+      ? 'Hold your pinch to choose YES.'
+      : 'Move your finger to YES.');
+
+    if (confirmHold(overYes)) {
       setScene(2);
+      gesture.ready = false;
       cake.style.left = '50%';
       cake.style.top = '65%';
+      flame.dataset.lit = 'false';
+      flame.classList.remove('on');
     }
 
   } else if (scene === 2) {
-    if (newPinch && now - sceneEntered > 500) {
-      flame.dataset.lit = 'true';
-      flame.classList.add('on');
-      say('Make a wish. Blow out the candle.');
+    cake.classList.add('show');
+
+    if (flame.dataset.lit !== 'true') {
+      say('Release, then hold your pinch to light the candle.');
+
+      if (confirmHold(true)) {
+        flame.dataset.lit = 'true';
+        flame.classList.add('on');
+        lastBlow = Date.now() + 2500;
+
+        flame.style.background =
+          'radial-gradient(ellipse at center, #fff9d7, #ffbf54 55%, #ff7b24)';
+        flame.style.boxShadow =
+          '0 0 20px #ffd27a, 0 0 60px #ffae55';
+
+        say('Candle lit! Make a wish, then blow.');
+      }
     }
 
   } else if (scene === 3) {
@@ -136,16 +209,12 @@ function gesture(landmarks) {
 
   } else if (scene === 4) {
     if (pinch) {
-      if (lastPoint) {
-        const dx = x - lastPoint.x;
-        const dy = y - lastPoint.y;
-
-        if (Math.hypot(dx, dy) < 90) {
-          canvasCtx.beginPath();
-          canvasCtx.moveTo(lastPoint.x, lastPoint.y);
-          canvasCtx.lineTo(x, y);
-          canvasCtx.stroke();
-        }
+      if (lastPoint &&
+          Math.hypot(x - lastPoint.x, y - lastPoint.y) < 90) {
+        canvasCtx.beginPath();
+        canvasCtx.moveTo(lastPoint.x, lastPoint.y);
+        canvasCtx.lineTo(x, y);
+        canvasCtx.stroke();
       }
       lastPoint = {x, y};
     } else {
