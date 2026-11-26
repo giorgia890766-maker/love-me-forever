@@ -40,6 +40,8 @@
 .stage[data-scene="3"] .controls .btn{min-width:0;padding:10px 13px}
 .stage[data-scene="3"] #record{display:none}
 @media(max-height:440px){.stage[data-scene="3"] .chapter{padding-top:48px}.stage[data-scene="3"] .memories{inset:108px 0 65px}.stage[data-scene="3"] .chapter p{display:none}}
+.future-prompt{position:absolute;z-index:5;left:0;right:0;top:39%;text-align:center;pointer-events:none;color:#fff2df;font:italic clamp(28px,7vw,65px)/1.35 Georgia,serif;text-shadow:0 2px 15px #11261a;display:none}
+.stage[data-scene="4"] .future-prompt{display:block}.future-prompt span{display:inline-block;width:2.5em;border-bottom:1px solid #fff2df9c}
 </style>
 </head>
 <body>
@@ -53,7 +55,7 @@
 <a href="https://kidnap-music.bandcamp.com/track/moments-ft-leo-stannard-2" target="_blank" rel="noopener">Listen on Bandcamp</a>
 </details>
 <section class="welcome" id="welcome"><div class="eyebrow">AN INTERACTIVE BIRTHDAY STORY</div><h1>Happy Birthday<br><i>to Me.</i></h1><p class="subtitle">A little ritual for everything I've been, everyone I love, and everything still to come.</p><button class="btn" id="start">BEGIN THE EXPERIENCE</button><button class="btn secondary" id="manualStart" style="margin-top:12px">PLAY WITHOUT CAMERA</button><div class="hint">Use your camera for hand gestures, or play with clicks and taps.</div></section>
-<div class="overlay" id="overlay"><div class="artwork"><div class="bubble"></div><div class="cake" id="cake"><div class="plate"></div><div class="base"></div><div class="icing"></div><div class="tree a"></div><div class="tree b"></div><div class="tree c"></div><div class="candle"></div><div class="flame" id="flame"></div></div><div class="choice" id="choice"><button class="btn" id="yes">YES, ALWAYS</button><button class="btn secondary" id="no">NO</button></div><div class="memories" id="memories"></div></div><div class="chapter"><h2 id="headline">Make a Wish.</h2><p id="description">Raise your palm to summon your birthday cake.</p></div><canvas class="drawCanvas" id="drawing"></canvas><div class="cursor" id="cursor"></div><div class="message" id="message" aria-live="polite">Loading hand-tracking model…</div><div class="controls"><button class="btn secondary" id="prev">BACK</button><button class="btn secondary" id="next">NEXT</button><button class="btn secondary" id="candleAction" hidden>LIGHT CANDLE</button><button class="btn secondary" id="photoBack" hidden>PREVIOUS PHOTO</button><button class="btn secondary" id="photoNext" hidden>NEXT PHOTO</button><button class="btn secondary" id="uploadLabel" hidden>ADD PHOTOS</button><input class="upload" type="file" id="photos" accept="image/*" multiple/><button class="btn secondary" id="record">● RECORD</button><button class="btn secondary hidden" id="clear">CLEAR WRITING</button></div></div>
+<div class="overlay" id="overlay"><div class="artwork"><div class="bubble"></div><div class="cake" id="cake"><div class="plate"></div><div class="base"></div><div class="icing"></div><div class="tree a"></div><div class="tree b"></div><div class="tree c"></div><div class="candle"></div><div class="flame" id="flame"></div></div><div class="choice" id="choice"><button class="btn" id="yes">YES, ALWAYS</button><button class="btn secondary" id="no">NO</button></div><div class="memories" id="memories"></div></div><div class="chapter"><h2 id="headline">Make a Wish.</h2><p id="description">Raise your palm to summon your birthday cake.</p></div><div class="future-prompt" aria-label="The blank is yet to come">The <span></span> Is<br>Yet to Come.</div><canvas class="drawCanvas" id="drawing"></canvas><div class="cursor" id="cursor"></div><div class="message" id="message" aria-live="polite">Loading hand-tracking model…</div><div class="controls"><button class="btn secondary" id="prev">BACK</button><button class="btn secondary" id="next">NEXT</button><button class="btn secondary" id="candleAction" hidden>LIGHT CANDLE</button><button class="btn secondary" id="photoBack" hidden>PREVIOUS PHOTO</button><button class="btn secondary" id="photoNext" hidden>NEXT PHOTO</button><button class="btn secondary" id="uploadLabel" hidden>ADD PHOTOS</button><input class="upload" type="file" id="photos" accept="image/*" multiple/><button class="btn secondary" id="record">● RECORD</button><button class="btn secondary hidden" id="clear">CLEAR WRITING</button></div></div>
 </main>
 <script type="module">
 const $=id=>document.getElementById(id);
@@ -65,9 +67,11 @@ music.addEventListener('toggle',()=>{
 const stage=$('stage'),cam=$('camera'),msg=$('message'),status=$('status'),cake=$('cake'),flame=$('flame'),choice=$('choice'),memory=$('memories'),drawing=$('drawing'),cursor=$('cursor');
 const sceneNames=['CAKE','LOVE','CANDLE','MEMORIES','FUTURE'];let scene=0;let hand=null,lastHand=null,photos=[],photoIndex=0,stream=null,micStream=null,analyser=null,recorder=null,recordParts=[],lastSwipe=0,lastBlow=0,isDrawing=false,lastPoint=null,canvasCtx=null,handModel=null,modelReady=false,detectBusy=false,videoLastTime=-1,sceneEntered=0;let lastPinch=false,swipeAnchor=null,pinchAnchor=null,photoUrls=[];
 let candleState='ready', candleLitAt=0, micState='off', micContext=null, blowStart=null;
-const futureText='The Best Is Yet to Come.';
-const info=[['Make a Wish.','Raise your palm to summon your birthday cake.'],['Love Me Forever?','Point to your answer.'],['Light a Candle.','Pinch your fingers together to light it; then blow into your microphone.'],['Birthday Memories.','Pinch, drag sideways and release. You can also swipe the screen.'],[futureText,'Write on the misted glass.']];
-function say(text){msg.textContent=text}function setScene(n){scene=Math.max(0,Math.min(4,n));sceneEntered=performance.now();cancelHandDrag();stage.dataset.scene=scene;$('next').textContent=scene===3?'WRITE ON THE GLASS →':'NEXT';$('next').classList.toggle('secondary',scene!==3);resetCandle();if(scene===2){cake.style.left='50%';cake.style.top='65%'}if(scene===4)paintFog();$('photoBack').hidden=$('photoNext').hidden=scene!==3;$('next').hidden=scene===4;swipeAnchor=null;pinchAnchor=null;isDrawing=false;lastPoint=null;lastPinch=false;const [t,d]=info[scene];$('headline').textContent=t;$('description').textContent=d;cake.classList.toggle('show',scene===0||scene===2);choice.classList.toggle('show',scene===1);memory.style.display=scene===3?'block':'none';drawing.style.display=scene===4?'block':'none';$('uploadLabel').hidden=scene!==3;$('clear').classList.toggle('hidden',scene!==4);flame.classList.toggle('on',scene===2&&flame.dataset.lit==='true');if(scene===0){flame.dataset.lit='false';flame.classList.remove('on')}if(scene===3){renderPhotos();if(!stream)status.textContent='TAP TO PLAY'}if(scene===4)status.textContent='WRITE ON THE GLASS';say(['Show your palm to reveal the cake.','Point to YES to celebrate yourself.','Pinch to light, then blow out the candle.','Swipe left or right to browse the album.','Drag your finger or mouse to draw. With the camera on, pinch and move your hand.'][scene])}
+const futureText='The ___ Is Yet to Come.';
+const sceneOrder=[0,2,1,3,4];
+let albumTapTimer=null,albumPinchStarted=null;
+const info=[['Make a Wish.','Raise your palm to summon your birthday cake.'],['Love Me Forever?','Point to your answer.'],['Light a Candle.','Pinch your fingers together to light it; then blow into your microphone.'],['Birthday Memories.','Tap thumb and index finger once to turn a photo, or twice quickly to write on the glass.'],[futureText,'Write on the misted glass.']];
+function say(text){msg.textContent=text}function setScene(n){scene=Math.max(0,Math.min(4,n));sceneEntered=performance.now();clearTimeout(albumTapTimer);albumTapTimer=null;albumPinchStarted=null;cancelHandDrag();stage.dataset.scene=scene;$('next').textContent=scene===3?'WRITE ON THE GLASS →':'NEXT';$('next').classList.toggle('secondary',scene!==3);resetCandle();if(scene===2){cake.style.left='50%';cake.style.top='65%'}if(scene===4)paintFog();$('photoBack').hidden=$('photoNext').hidden=scene!==3;$('next').hidden=scene===4;swipeAnchor=null;pinchAnchor=null;isDrawing=false;lastPoint=null;lastPinch=false;const [t,d]=info[scene];$('headline').textContent=t;$('description').textContent=d;cake.classList.toggle('show',scene===0||scene===2);choice.classList.toggle('show',scene===1);memory.style.display=scene===3?'block':'none';drawing.style.display=scene===4?'block':'none';$('uploadLabel').hidden=scene!==3;$('clear').classList.toggle('hidden',scene!==4);flame.classList.toggle('on',scene===2&&flame.dataset.lit==='true');if(scene===0){flame.dataset.lit='false';flame.classList.remove('on')}if(scene===3){renderPhotos();if(!stream)status.textContent='TAP TO PLAY'}if(scene===4)status.textContent='WRITE ON THE GLASS';say(['Show your palm to reveal the cake.','Point to YES to celebrate yourself.','Pinch to light, then blow out the candle.','Swipe left or right to browse the album.','Write BEST in the blank. Drag on the glass, or pinch and move your hand.'][scene])}
 function paintFog(){
   canvasCtx.globalCompositeOperation='source-over';
   canvasCtx.clearRect(0,0,innerWidth,innerHeight);
@@ -83,18 +87,14 @@ function paintFog(){
     canvasCtx.fillStyle=i%2?'#e7fff62b':'#193b3030';
     canvasCtx.fill();
   }
-  canvasCtx.fillStyle='#1c3a2f';
-  canvasCtx.textAlign='center';
-  canvasCtx.font='italic '+Math.min(64,innerWidth/10)+'px Georgia';
-  canvasCtx.fillText('The Best Is',innerWidth/2,innerHeight*.41);
-  canvasCtx.fillText('Yet to Come.',innerWidth/2,innerHeight*.51);
+
 }
 function wipe(from,to){
   canvasCtx.save();
-  canvasCtx.globalCompositeOperation='destination-out';
-  canvasCtx.strokeStyle='#000';
+  canvasCtx.globalCompositeOperation='source-over';
+  canvasCtx.strokeStyle='#fff6dd';
   canvasCtx.lineCap='round';
-  canvasCtx.lineWidth=24;
+  canvasCtx.lineWidth=7;
   canvasCtx.beginPath();
   canvasCtx.moveTo(from.x,from.y);
   canvasCtx.lineTo(to.x+.01,to.y);
@@ -161,6 +161,16 @@ function renderPhotos(){
     if(Math.abs(step)<=2&&!img.hasAttribute('src'))img.src=url;
   });
 }
+function albumFingerTap(){
+  if(albumTapTimer!==null){
+    setScene(4);
+    return;
+  }
+  albumTapTimer=setTimeout(()=>{
+    albumTapTimer=null;
+    turnPhoto(1);
+  },400);
+}
 function turnPhoto(direction){
   if(scene!==3)return;
   photoIndex=(photoIndex+direction+photos.length)%photos.length;
@@ -208,6 +218,7 @@ function gesture(landmarks) {
     cursor.style.display = 'none';
     cursor.style.boxShadow = '';
     hand = null;
+    albumPinchStarted=null;
     cancelHandDrag();
     lastPinch = false;
     pinchAnchor = null;
@@ -316,7 +327,7 @@ function gesture(landmarks) {
     say('Hold your pinch to continue.');
 
     if (confirmHold(true)) {
-      setScene(1);
+      setScene(2);
       gesture.ready = false;
     }
 
@@ -341,7 +352,7 @@ function gesture(landmarks) {
       : 'Move your finger to YES.');
 
     if (confirmHold(overYes)) {
-      setScene(2);
+      setScene(3);
       gesture.ready = false;
       cake.style.left = '50%';
       cake.style.top = '65%';
@@ -361,25 +372,11 @@ function gesture(landmarks) {
     }
 
   } else if (scene === 3) {
-    if (drag) {
-      swipeAnchor = null;
-    } else if (!pinch) {
-      if (swipeAnchor) {
-        const dx = swipeAnchor.offset;
-        cancelHandDrag();
-        if (Math.abs(dx) >= Math.min(84, innerWidth * .15)) {
-          turnPhoto(dx < 0 ? 1 : -1);
-        }
-      }
-    } else if (!lastPinch && gesture.ready) {
-      const midpoint = map({x:(pt.x+thumb.x)/2,y:(pt.y+thumb.y)/2});
-      swipeAnchor = {x:midpoint.x, offset:0};
-      memory.classList.add('dragging');
-    } else if (swipeAnchor) {
-      const midpoint = map({x:(pt.x+thumb.x)/2,y:(pt.y+thumb.y)/2});
-      const target = Math.max(-180, Math.min(180, midpoint.x-swipeAnchor.x));
-      swipeAnchor.offset += (target-swipeAnchor.offset)*.4;
-      dragOffset(swipeAnchor.offset);
+    if (pinch && !lastPinch && gesture.ready && !drag) {
+      albumPinchStarted=now;
+    } else if (!pinch && lastPinch && albumPinchStarted!==null) {
+      if(now-albumPinchStarted<=550)albumFingerTap();
+      albumPinchStarted=null;
     }
 
   } else if (scene === 4) {
@@ -472,9 +469,9 @@ function extinguish(){
   flame.classList.remove('on');
   $('candleAction').hidden=true;
   status.textContent='WISH MADE';
-  say('Wish made! Your birthday memories are next.');
+  say('Wish made!');
   const visit=sceneEntered;
-  setTimeout(()=>{if(scene===2&&sceneEntered===visit)setScene(3)},950);
+  setTimeout(()=>{if(scene===2&&sceneEntered===visit)setScene(1)},950);
 }
 $('candleAction').onclick=()=>candleState==='ready'?lightCandle():extinguish();
 async function microphone(){
@@ -545,9 +542,9 @@ async function start(){
 }
 $('start').onclick=start;
 $('manualStart').onclick=enter;
-$('next').onclick=()=>setScene(scene+1);
-$('prev').onclick=()=>setScene(scene-1);
-$('yes').onclick=()=>setScene(2);
+$('next').onclick=()=>setScene(sceneOrder[Math.min(4,sceneOrder.indexOf(scene)+1)]);
+$('prev').onclick=()=>setScene(sceneOrder[Math.max(0,sceneOrder.indexOf(scene)-1)]);
+$('yes').onclick=()=>setScene(3);
 $('no').onmouseenter=()=>$('no').style.transform=`translate(${Math.random()*160-80}px,${Math.random()*110-55}px)`;
 $('clear').textContent='RESET GLASS';
 $('clear').onclick=()=>{paintFog();lastPoint=null};
