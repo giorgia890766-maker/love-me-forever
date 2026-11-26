@@ -28,7 +28,47 @@ const demoCaptions=['With love','The birthday table','My favorite people','Forev
 function turnPhoto(direction){const count=photos.length||4;photoIndex=(photoIndex+direction+count)%count;renderPhotos();say(`Photo ${photoIndex+1} of ${count} · Swipe to browse`)}
 $('photos').addEventListener('change',e=>{photoUrls.forEach(URL.revokeObjectURL);photoUrls=[];const files=[...e.target.files].filter(x=>x.type.startsWith('image/')).slice(0,60);photos=files.map(f=>{const u=URL.createObjectURL(f);photoUrls.push(u);return u});photoIndex=0;renderPhotos();say(`${photos.length} personal photos loaded locally. Nothing was uploaded.`)});
 function gesture(landmarks){if(!landmarks||!landmarks.length){cursor.style.display='none';hand=null;lastPinch=false;lastPoint=null;isDrawing=false;return}const lm=landmarks[0];let pt=lm[8],thumb=lm[4],palm=lm[9],wrist=lm[0];const x=(1-pt.x)*innerWidth,y=pt.y*innerHeight;const d=Math.hypot(pt.x-thumb.x,pt.y-thumb.y),pinch=d<.065;cursor.style.display='block';cursor.style.left=`${x}px`;cursor.style.top=`${y}px`;cursor.style.background=pinch?'#fff0dd':'transparent';const now=performance.now();if(scene===0){const palmY=(palm.y+wrist.y)/2;if(palmY<.90&&lm[12].y<wrist.y){cake.classList.add('show');const cx=(1-palm.x)*innerWidth,cy=Math.min(innerHeight*.72,Math.max(innerHeight*.36,palm.y*innerHeight+140));cake.style.left=`${cx}px`;cake.style.top=`${cy}px`;say('Cake summoned! Pinch to continue.');if(pinch&&!lastPinch&&now-sceneEntered>1200)setScene(1)}}if(scene===1){const r=$('yes').getBoundingClientRect();const nr=$('no').getBoundingClientRect();if(x>nr.left-35&&x<nr.right+35&&y>nr.top-30&&y<nr.bottom+30){$('no').style.transform=`translate(${Math.random()*65-32}px,${Math.random()*50-25}px)`}if(pinch&&!lastPinch&&x>r.left-55&&x<r.right+55&&y>r.top-50&&y<r.bottom+50)setScene(2)}if(scene===2&&pinch&&!lastPinch){flame.dataset.lit='true';flame.classList.add('on');say('Make a wish… and blow toward the microphone to extinguish.')}if(scene===3){if(!swipeAnchor)swipeAnchor={x,time:now};if(Math.abs(x-swipeAnchor.x)>Math.min(90,innerWidth*.18)&&now-lastSwipe>340){turnPhoto(x<swipeAnchor.x?1:-1);lastSwipe=now;swipeAnchor={x,time:now}}else if(now-swipeAnchor.time>650){swipeAnchor={x,time:now}}}if(scene===4){if(pinch){if(!lastPoint){lastPoint={x,y}}else{const dx=x-lastPoint.x,dy=y-lastPoint.y;if(Math.hypot(dx,dy)<90){canvasCtx.beginPath();canvasCtx.moveTo(lastPoint.x,lastPoint.y);canvasCtx.lineTo(x,y);canvasCtx.stroke()}lastPoint={x,y}}}else lastPoint=null}lastPinch=pinch}
-async function tracking(){try{const lib=await import('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22/+esm');const resolver=await lib.FilesetResolver.forVisionTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22/wasm');handModel=await lib.HandLandmarker.createFromOptions(resolver,{baseOptions:{modelAssetPath:'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task',delegate:'GPU'},runningMode:'VIDEO',numHands:1,minHandDetectionConfidence:.55,minTrackingConfidence:.45});modelReady=true;say('Hand tracking ready · Show your palm to summon the cake.')}catch(err){console.error(err);say('Hand tracking could not load. Use NEXT for a navigation fallback. Check Internet access / browser WebGL.')}}
+async function tracking(){
+  try {
+    status.textContent = 'V1.1 · AI LOADING';
+    say('Loading AI hand tracking...');
+
+    const lib = await import(
+      'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.21/+esm'
+    );
+
+    const resolver = await lib.FilesetResolver.forVisionTasks(
+      'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.21/wasm'
+    );
+
+    for (const delegate of ['GPU', 'CPU']) {
+      try {
+        handModel = await lib.HandLandmarker.createFromOptions(resolver, {
+          baseOptions: {
+            modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task',
+            delegate: delegate
+          },
+          runningMode: 'VIDEO',
+          numHands: 1,
+          minHandDetectionConfidence: 0.45,
+          minTrackingConfidence: 0.45
+        });
+        modelReady = true;
+        status.textContent = 'V1.1 · AI ' + delegate;
+        say('Hand tracking ready. Show your palm.');
+        return;
+      } catch (error) {
+        console.warn(delegate, error);
+        if (delegate === 'CPU') throw error;
+      }
+    }
+  } catch (error) {
+    console.error(error);
+    status.textContent = 'V1.1 · AI ERROR';
+    say('AI error: ' + error.message);
+  }
+}
+
 function detect(){if(!stage.classList.contains('live'))return;try{if(modelReady&&cam.readyState>=2&&cam.currentTime!==videoLastTime){videoLastTime=cam.currentTime;const result=handModel.detectForVideo(cam,performance.now());gesture(result.landmarks)}}catch(e){console.warn('Tracking error',e)}requestAnimationFrame(detect)}
 async function microphone(){try{micStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});let ctx=new(window.AudioContext||window.webkitAudioContext)();let source=ctx.createMediaStreamSource(micStream);analyser=ctx.createAnalyser();analyser.fftSize=1024;source.connect(analyser);let a=new Uint8Array(analyser.fftSize);let blows=0;function listen(){if(!stage.classList.contains('live'))return;analyser.getByteTimeDomainData(a);let sum=0;for(let i=0;i<a.length;i++){let v=(a[i]-128)/128;sum+=v*v}const rms=Math.sqrt(sum/a.length);if(scene===2&&flame.dataset.lit==='true'&&Date.now()-lastBlow>1000){blows=rms>.10?blows+1:Math.max(0,blows-1);if(blows>=7){flame.dataset.lit='false';flame.classList.remove('on');lastBlow=Date.now();blows=0;say('Wish made! Your birthday memories are next.');setTimeout(()=>{if(scene===2)setScene(3)},1200)}}requestAnimationFrame(listen)}listen()}catch(e){say('Microphone unavailable — use NEXT to continue after lighting.')}}
 async function start(){if(!navigator.mediaDevices?.getUserMedia){alert('Camera requires HTTPS or localhost, and a compatible browser.');return}try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:{ideal:1280},height:{ideal:720}},audio:false});cam.srcObject=stream;await cam.play();stage.classList.add('live');$('welcome').classList.add('hidden');status.textContent='● CAMERA LIVE';status.classList.add('active');setScene(0);tracking();microphone();requestAnimationFrame(detect)}catch(e){alert('Could not access camera: '+e.message+'. Check browser permissions and HTTPS.')}}$('start').onclick=start;$('next').onclick=()=>setScene(scene+1);$('prev').onclick=()=>setScene(scene-1);$('yes').onclick=()=>setScene(2);$('no').onmouseenter=()=>{$('no').style.transform=`translate(${Math.random()*160-80}px,${Math.random()*110-55}px)`};$('clear').onclick=()=>{canvasCtx.clearRect(0,0,innerWidth,innerHeight);lastPoint=null};
