@@ -336,7 +336,7 @@ function gesture(landmarks) {
   const now = performance.now();
 
   if (!landmarks || !landmarks.length) {
-    if(scene===4&&lastPoint&&now-airSeen18<300)return;
+    if(scene===4&&lastPoint&&now-airSeen18<150)return;
     if(scene===4&&lastPoint)finishStroke(lastPoint);
     cursor.style.display = 'none';
     cursor.style.boxShadow = '';
@@ -381,7 +381,7 @@ function gesture(landmarks) {
   const ratio = distance(pt, thumb) / palmSize;
   if(airScene18!==sceneEntered){airScene18=sceneEntered;airHeld18=0;airSeen18=0;}
   airSeen18=now;
-  const pinch = ratio < (scene===4?(lastPinch?0.78:0.48):(lastPinch?0.55:0.35));
+  const pinch = ratio < (scene===4?(lastPinch?0.57:0.38):(lastPinch?0.55:0.35));
 
   if (gesture.scene !== scene ||
       gesture.entered !== sceneEntered) {
@@ -505,13 +505,14 @@ function gesture(landmarks) {
     }
 
   } else if (scene === 4) {
-    if(pinch)airHeld18=now;
-    if((pinch||(lastPoint&&now-airHeld18<180))&&!pointerStroke){
+    if(pinch&&!pointerStroke){
       const tip=map({x:(pt.x+thumb.x)/2,y:(pt.y+thumb.y)/2});
-      if(pinch)stabilizedAirStroke17(tip,now);
+      stabilizedAirStroke17(tip,now);
+      status.textContent='WRITING';
     }else{
       finishStroke(lastPoint);
       lastPoint=null;
+      status.textContent='PEN UP';
     }
   }
 
