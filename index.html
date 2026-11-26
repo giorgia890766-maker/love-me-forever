@@ -8,6 +8,11 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Italiana&display=swap" rel="stylesheet">
 <style>
 :root{--forest:#16271f;--deep:#102018;--cream:#fff2df;--mute:#b9bba6;--burgundy:#782d42}*{box-sizing:border-box}html,body{height:100%;margin:0}body{background:var(--forest);color:var(--cream);font-family:'DM Sans',sans-serif;overflow:hidden}.stage{position:relative;width:100%;height:100dvh;overflow:hidden;background:radial-gradient(ellipse at 50% 65%,#34503c,#172b21 58%,#101d17)}.camera{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1);opacity:.78;display:none}.stage.live .camera{display:block}.veil{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(9,24,17,.45),transparent 35%,rgba(9,22,15,.70));pointer-events:none}.topbar{position:absolute;top:0;left:0;right:0;padding:max(21px,env(safe-area-inset-top)) max(24px,env(safe-area-inset-right)) 0 max(24px,env(safe-area-inset-left));display:flex;align-items:center;justify-content:space-between;gap:12px;z-index:5}.brand{letter-spacing:.22em;font-size:11px;font-weight:600}.status{font-size:10px;letter-spacing:.16em;color:var(--mute)}.status.active{color:#c8e6a5}.welcome{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:24px;z-index:3;transition:opacity .5s,visibility .5s}.welcome.hidden{opacity:0;visibility:hidden;pointer-events:none}.eyebrow{font-size:11px;letter-spacing:.3em;color:#e4d9c7;margin-bottom:25px}.welcome h1,.chapter h2{font-family:'Italiana',Georgia,serif;font-weight:400;line-height:.98;margin:0}.welcome h1{font-size:clamp(57px,9vw,115px);max-width:900px}.welcome h1 i{font-weight:400;font-style:normal;color:#d9ab9e}.subtitle{max-width:390px;line-height:1.75;color:#c7cbbb;font-size:13px;margin:30px auto 36px}.btn{background:var(--cream);color:#203326;border:1px solid var(--cream);padding:15px 30px;min-width:180px;letter-spacing:.14em;font-weight:600;font-size:11px;border-radius:99px;cursor:pointer;transition:transform .2s,background .2s}.btn:hover{transform:translateY(-2px);background:#fff}.btn.secondary{background:transparent;color:var(--cream);border-color:#c9c8b08c;min-width:0}.btn:disabled{opacity:.48;cursor:not-allowed}.hint{font-size:11px;opacity:.62;margin-top:19px;line-height:1.7}.overlay{position:absolute;inset:0;z-index:2;display:none;pointer-events:none}.stage.live .overlay{display:block}.artwork{position:absolute;inset:0;overflow:hidden;pointer-events:none}.bubble{position:absolute;border:1px solid rgba(255,243,222,.16);width:min(48vw,380px);height:min(48vw,380px);border-radius:50%;left:50%;top:48%;transform:translate(-50%,-50%);box-shadow:0 0 120px #e2e0a60c}.chapter{position:absolute;inset:0;display:flex;align-items:center;justify-content:flex-start;flex-direction:column;text-align:center;padding:clamp(115px,20vh,170px) 20px 115px;z-index:2;pointer-events:none}.chapter h2{font-size:clamp(42px,7vw,78px);max-width:700px}.chapter p{font-size:12px;color:#ded7c7;margin:12px 0 0;line-height:1.7}.interaction{position:absolute;inset:0;pointer-events:none;z-index:3}.cursor{position:absolute;width:19px;height:19px;border:2px solid #fff5de;border-radius:50%;box-shadow:0 0 0 7px #eee8c828,0 0 30px #fff4df7f;transform:translate(-50%,-50%);display:none;pointer-events:none;z-index:9}.controls{position:absolute;left:0;right:0;bottom:0;display:flex;flex-wrap:wrap;gap:10px;justify-content:center;align-items:center;padding:0 16px max(28px,env(safe-area-inset-bottom));z-index:8}.controls button{pointer-events:auto}.message{position:absolute;left:50%;bottom:100px;transform:translateX(-50%);border:1px solid #ffffff3b;background:#0c2017ac;backdrop-filter:blur(8px);border-radius:50px;font-size:11px;padding:10px 18px;white-space:normal;max-width:min(92vw,560px);text-align:center;line-height:1.4;color:#f6e9d4;z-index:5;pointer-events:none}.cake{position:absolute;left:50%;top:65%;transform:translate(-50%,-50%);width:240px;height:235px;filter:drop-shadow(0 17px 18px #07110b8a);display:none}.cake.show{display:block}.cake .plate{position:absolute;left:17px;right:17px;bottom:5px;height:30px;background:linear-gradient(#f4ebdc,#bcafa0);border-radius:50%}.cake .base{position:absolute;left:30px;right:30px;bottom:23px;height:111px;background:linear-gradient(90deg,#d9caba,#fff9ee 23%,#f2e7d9 65%,#cbbaaa);border-radius:24px 24px 40px 40px / 19px 19px 28px 28px;box-shadow:inset 0 -7px 0 #d2c0ae}.cake .icing{position:absolute;left:30px;right:30px;bottom:116px;height:35px;background:#fff9eb;border-radius:50%;box-shadow:0 7px 1px #fff6e5}.tree{position:absolute;bottom:145px;width:0;height:0;border-left:20px solid transparent;border-right:20px solid transparent;border-bottom:0;border-top:70px solid #355a40;filter:drop-shadow(0 2px 1px #243d2b)}.tree:before,.tree:after{content:'';position:absolute;border-left:15px solid transparent;border-right:15px solid transparent;border-top:42px solid #4f7652;left:-15px;top:-51px}.tree:after{top:-27px;border-left-width:20px;border-right-width:20px;left:-20px;border-top-color:#355d42}.tree.a{left:63px;transform:scale(.7);bottom:139px}.tree.b{left:101px;transform:scale(1);bottom:154px}.tree.c{left:139px;transform:scale(.77);bottom:140px}.candle{position:absolute;width:8px;height:42px;bottom:140px;left:115px;background:linear-gradient(90deg,#662337,#a04457,#672536);border-radius:3px}.flame{position:absolute;bottom:180px;left:113px;background:#ffce7b;width:12px;height:19px;border-radius:70% 30% 70% 30%;transform:rotate(45deg);box-shadow:0 0 16px #ffcc76,0 0 55px #f2ad79;display:none}.flame.on{display:block}.choice{position:absolute;left:50%;top:65%;transform:translate(-50%,-50%);display:none;gap:24px;align-items:center;pointer-events:auto}.choice.show{display:flex}.choice button{min-width:95px}.memories{position:absolute;inset:13% 0 9%;pointer-events:none;perspective:1100px}.photo{position:absolute;left:50%;top:51%;background:#f1e9dd;padding:8px 8px 27px;width:min(34vw,190px);aspect-ratio:.8;box-shadow:0 20px 40px #00170f66;transform-origin:center;transition:transform .6s cubic-bezier(.2,.8,.2,1),opacity .6s;overflow:hidden}.photo img{width:100%;height:100%;object-fit:cover;display:block}.photo .empty{height:100%;width:100%;background:linear-gradient(135deg,#a9a48d,#667868 55%,#9d7780);display:grid;place-items:center;color:#f5eee3;font:italic 19px 'Italiana',serif}.photo:nth-child(2n) .empty{background:linear-gradient(135deg,#bda58f,#865e63)}.photo:nth-child(3n) .empty{background:linear-gradient(135deg,#6e8076,#a2a18c)}.photo span{position:absolute;bottom:7px;left:0;right:0;color:#544b46;text-align:center;font:italic 12px Georgia,serif}.drawCanvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:4}.upload{display:none}.uploadLabel{cursor:pointer}.small{font-size:10px}.hidden{display:none!important}@media (max-width:600px){.brand{font-size:9px}.status{font-size:9px}.welcome h1{font-size:62px}.chapter{padding-top:20vh}.chapter h2{font-size:48px}.cake{transform:translate(-50%,-50%) scale(.83)}.controls .btn{min-width:0;padding:12px 18px;font-size:10px}.message{bottom:109px;font-size:10px}.photo{width:34vw}}
+.cake .candle{left:116px;z-index:2}.cake .tree.b{left:150px}.cake .tree.c{left:87px;bottom:135px;transform:scale(.58)}
+.flame{left:111px;bottom:181px;width:18px;height:29px;z-index:3;transform:none;border-radius:55% 50% 48% 48%;transform-origin:center bottom;background:radial-gradient(ellipse at 50% 75%,#fff 4%,#fff2ae 29%,#ffbd48 62%,#ff7518);box-shadow:0 0 20px #ffd27a,0 0 54px #ffae55}
+.flame.on{animation:flicker .58s ease-in-out infinite alternate}@keyframes flicker{to{transform:scale(.83,1.13) rotate(-5deg)}}
+[hidden]{display:none!important}.stage[data-scene="4"] .chapter{visibility:hidden}.stage[data-scene="4"] .drawCanvas{pointer-events:auto;touch-action:none}.stage[data-scene="4"] .message{z-index:6}
+@media(prefers-reduced-motion:reduce){.flame.on{animation:none}}
 </style>
 </head>
 <body>
@@ -15,18 +20,80 @@
 <video class="camera" id="camera" autoplay playsinline muted></video>
 <div class="veil"></div>
 <header class="topbar"><span class="brand">LOVE ME FOREVER.</span><span class="status" id="status">CAMERA OFF</span></header>
-<section class="welcome" id="welcome"><div class="eyebrow">AN INTERACTIVE BIRTHDAY STORY</div><h1>Happy Birthday<br><i>to Me.</i></h1><p class="subtitle">A little ritual for everything I've been, everyone I love, and everything still to come.</p><button class="btn" id="start">BEGIN THE EXPERIENCE</button><div class="hint">Camera required · For the best experience, use HTTPS and good lighting</div></section>
-<div class="overlay" id="overlay"><div class="artwork"><div class="bubble"></div><div class="cake" id="cake"><div class="plate"></div><div class="base"></div><div class="icing"></div><div class="tree a"></div><div class="tree b"></div><div class="tree c"></div><div class="candle"></div><div class="flame" id="flame"></div></div><div class="choice" id="choice"><button class="btn" id="yes">YES, ALWAYS</button><button class="btn secondary" id="no">NO</button></div><div class="memories" id="memories"></div></div><div class="chapter"><h2 id="headline">Make a Wish.</h2><p id="description">Raise your palm to summon your birthday cake.</p></div><canvas class="drawCanvas" id="drawing"></canvas><div class="cursor" id="cursor"></div><div class="message" id="message">Loading hand-tracking model…</div><div class="controls"><button class="btn secondary" id="prev">BACK</button><button class="btn secondary" id="next">NEXT</button><label class="btn secondary uploadLabel hidden" id="uploadLabel" for="photos">ADD PHOTOS</label><input class="upload" type="file" id="photos" accept="image/*" multiple/><button class="btn secondary" id="record">● RECORD</button><button class="btn secondary hidden" id="clear">CLEAR WRITING</button></div></div>
+<section class="welcome" id="welcome"><div class="eyebrow">AN INTERACTIVE BIRTHDAY STORY</div><h1>Happy Birthday<br><i>to Me.</i></h1><p class="subtitle">A little ritual for everything I've been, everyone I love, and everything still to come.</p><button class="btn" id="start">BEGIN THE EXPERIENCE</button><button class="btn secondary" id="manualStart" style="margin-top:12px">PLAY WITHOUT CAMERA</button><div class="hint">Use your camera for hand gestures, or play with clicks and taps.</div></section>
+<div class="overlay" id="overlay"><div class="artwork"><div class="bubble"></div><div class="cake" id="cake"><div class="plate"></div><div class="base"></div><div class="icing"></div><div class="tree a"></div><div class="tree b"></div><div class="tree c"></div><div class="candle"></div><div class="flame" id="flame"></div></div><div class="choice" id="choice"><button class="btn" id="yes">YES, ALWAYS</button><button class="btn secondary" id="no">NO</button></div><div class="memories" id="memories"></div></div><div class="chapter"><h2 id="headline">Make a Wish.</h2><p id="description">Raise your palm to summon your birthday cake.</p></div><canvas class="drawCanvas" id="drawing"></canvas><div class="cursor" id="cursor"></div><div class="message" id="message">Loading hand-tracking model…</div><div class="controls"><button class="btn secondary" id="prev">BACK</button><button class="btn secondary" id="next">NEXT</button><button class="btn secondary" id="candleAction" hidden>LIGHT CANDLE</button><button class="btn secondary" id="photoBack" hidden>PREVIOUS PHOTO</button><button class="btn secondary" id="photoNext" hidden>NEXT PHOTO</button><button class="btn secondary" id="uploadLabel" hidden>ADD PHOTOS</button><input class="upload" type="file" id="photos" accept="image/*" multiple/><button class="btn secondary" id="record">● RECORD</button><button class="btn secondary hidden" id="clear">CLEAR WRITING</button></div></div>
 </main>
 <script type="module">
 const $=id=>document.getElementById(id);const stage=$('stage'),cam=$('camera'),msg=$('message'),status=$('status'),cake=$('cake'),flame=$('flame'),choice=$('choice'),memory=$('memories'),drawing=$('drawing'),cursor=$('cursor');
 const sceneNames=['CAKE','LOVE','CANDLE','MEMORIES','FUTURE'];let scene=0;let hand=null,lastHand=null,photos=[],photoIndex=0,stream=null,micStream=null,analyser=null,recorder=null,recordParts=[],lastSwipe=0,lastBlow=0,isDrawing=false,lastPoint=null,canvasCtx=null,handModel=null,modelReady=false,detectBusy=false,videoLastTime=-1,sceneEntered=0;let lastPinch=false,swipeAnchor=null,pinchAnchor=null,photoUrls=[];
-const info=[['Make a Wish.','Raise your palm to summon your birthday cake.'],['Love Me Forever?','Point to your answer.'],['Light a Candle.','Pinch to light, then pucker your lips or wave.'],['Birthday Memories.','Upload your own photos. Move your index finger horizontally to turn the pages.'],['The Best Is Yet to Come.','Pinch to draw in the air. Release to lift the pen.']];
-function say(text){msg.textContent=text}function setScene(n){scene=Math.max(0,Math.min(4,n));sceneEntered=performance.now();swipeAnchor=null;pinchAnchor=null;isDrawing=false;lastPoint=null;lastPinch=false;const [t,d]=info[scene];$('headline').textContent=t;$('description').textContent=d;cake.classList.toggle('show',scene===0||scene===2);choice.classList.toggle('show',scene===1);memory.style.display=scene===3?'block':'none';drawing.style.display=scene===4?'block':'none';$('uploadLabel').classList.toggle('hidden',scene!==3);$('clear').classList.toggle('hidden',scene!==4);flame.classList.toggle('on',scene===2&&flame.dataset.lit==='true');if(scene===0){flame.dataset.lit='false';flame.classList.remove('on')}if(scene===3)renderPhotos();say(['Show your palm to reveal the cake.','Point to YES to celebrate yourself.','Pinch to light, then blow out the candle.','Upload photos and swipe your index finger left or right.','Pinch and move your hand to write freely.'][scene])}
-function resize(){drawing.width=innerWidth*devicePixelRatio;drawing.height=innerHeight*devicePixelRatio;canvasCtx=drawing.getContext('2d');canvasCtx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);canvasCtx.lineCap='round';canvasCtx.lineJoin='round';canvasCtx.strokeStyle='#fff0d6';canvasCtx.lineWidth=3;canvasCtx.shadowBlur=13;canvasCtx.shadowColor='#ffe6b0'}addEventListener('resize',resize);resize();
+let candleState='ready', candleLitAt=0, micState='off', micContext=null, blowStart=null;
+const futureText='The Best Is Yet to Come.';
+const info=[['Make a Wish.','Raise your palm to summon your birthday cake.'],['Love Me Forever?','Point to your answer.'],['Light a Candle.','Pinch your fingers together to light it; then blow into your microphone.'],['Birthday Memories.','Upload your own photos. Move your index finger horizontally to turn the pages.'],[futureText,'Write on the misted glass.']];
+function say(text){msg.textContent=text}function setScene(n){scene=Math.max(0,Math.min(4,n));sceneEntered=performance.now();stage.dataset.scene=scene;resetCandle();if(scene===2){cake.style.left='50%';cake.style.top='65%'}if(scene===4)paintFog();$('photoBack').hidden=$('photoNext').hidden=scene!==3;$('next').hidden=scene===4;swipeAnchor=null;pinchAnchor=null;isDrawing=false;lastPoint=null;lastPinch=false;const [t,d]=info[scene];$('headline').textContent=t;$('description').textContent=d;cake.classList.toggle('show',scene===0||scene===2);choice.classList.toggle('show',scene===1);memory.style.display=scene===3?'block':'none';drawing.style.display=scene===4?'block':'none';$('uploadLabel').hidden=scene!==3;$('clear').classList.toggle('hidden',scene!==4);flame.classList.toggle('on',scene===2&&flame.dataset.lit==='true');if(scene===0){flame.dataset.lit='false';flame.classList.remove('on')}if(scene===3){renderPhotos();if(!stream)status.textContent='TAP TO PLAY'}if(scene===4)status.textContent='WRITE ON THE GLASS';say(['Show your palm to reveal the cake.','Point to YES to celebrate yourself.','Pinch to light, then blow out the candle.','Upload photos and swipe your index finger left or right.','Pinch and move, or drag across the glass. Reveal a message or write your own.'][scene])}
+function paintFog(){
+  canvasCtx.globalCompositeOperation='source-over';
+  canvasCtx.clearRect(0,0,innerWidth,innerHeight);
+  const fog=canvasCtx.createLinearGradient(0,0,0,innerHeight);
+  fog.addColorStop(0,'rgba(166,182,174,.46)');
+  fog.addColorStop(.48,'rgba(202,219,211,.83)');
+  fog.addColorStop(1,'rgba(106,133,121,.57)');
+  canvasCtx.fillStyle=fog;
+  canvasCtx.fillRect(0,0,innerWidth,innerHeight);
+  for(let i=0;i<240;i++){
+    canvasCtx.beginPath();
+    canvasCtx.ellipse(Math.random()*innerWidth,Math.random()*innerHeight,1+Math.random()*2,2+Math.random()*5,0,0,Math.PI*2);
+    canvasCtx.fillStyle=i%2?'#e7fff62b':'#193b3030';
+    canvasCtx.fill();
+  }
+  canvasCtx.fillStyle='#1c3a2f';
+  canvasCtx.textAlign='center';
+  canvasCtx.font='italic '+Math.min(64,innerWidth/10)+'px Georgia';
+  canvasCtx.fillText('The Best Is',innerWidth/2,innerHeight*.41);
+  canvasCtx.fillText('Yet to Come.',innerWidth/2,innerHeight*.51);
+}
+function wipe(from,to){
+  canvasCtx.save();
+  canvasCtx.globalCompositeOperation='destination-out';
+  canvasCtx.strokeStyle='#000';
+  canvasCtx.lineCap='round';
+  canvasCtx.lineWidth=24;
+  canvasCtx.beginPath();
+  canvasCtx.moveTo(from.x,from.y);
+  canvasCtx.lineTo(to.x+.01,to.y);
+  canvasCtx.stroke();
+  canvasCtx.restore();
+}
+function resize(){
+  drawing.width=innerWidth*devicePixelRatio;
+  drawing.height=innerHeight*devicePixelRatio;
+  canvasCtx=drawing.getContext('2d');
+  canvasCtx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+  if(scene===4)paintFog();
+}
+addEventListener('resize',resize);resize();
+let pointerStroke=null;
+drawing.onpointerdown=e=>{
+  if(scene!==4||!e.isPrimary)return;
+  drawing.setPointerCapture(e.pointerId);
+  pointerStroke={x:e.clientX,y:e.clientY};
+  wipe(pointerStroke,pointerStroke);
+};
+drawing.onpointermove=e=>{
+  if(!pointerStroke||!e.isPrimary)return;
+  const point={x:e.clientX,y:e.clientY};
+  wipe(pointerStroke,point);
+  pointerStroke=point;
+};
+drawing.onlostpointercapture=()=>{pointerStroke=null};
+$('uploadLabel').onclick=()=>$('photos').click();
+$('photoBack').onclick=()=>turnPhoto(-1);
+$('photoNext').onclick=()=>turnPhoto(1);
+// Add repository-relative paths here to include photos for all visitors.
+const includedPhotos=[];
+photos=[...includedPhotos];
 const demoCaptions=['With love','The birthday table','My favorite people','Forever moments'];function renderPhotos(){memory.innerHTML='';const list=photos.length?photos:[null,null,null,null];const offsets=[[-170,-30,-19],[-80,8,11],[70,-15,13],[152,25,-15]];for(let i=0;i<Math.min(list.length,11);i++){let ix=((photoIndex+i)%list.length+list.length)%list.length;let div=document.createElement('div');div.className='photo';const o=offsets[i%4];const depth=i===0?0:i*18;const scale=i===0?1.12:Math.max(.58,1-i*.055);div.style.transform=`translate(calc(-50% + ${i===0?0:o[0]}px),calc(-50% + ${i===0?0:o[1]}px)) rotate(${i===0?-3:o[2]}deg) scale(${scale})`;div.style.zIndex=String(20-i);div.style.opacity=String(Math.max(.36,1-i*.07));div.style.filter=i===0?'none':'saturate(.75)';if(list[ix]){let img=document.createElement('img');img.src=list[ix];img.alt=`Birthday memory ${ix+1}`;div.append(img)}else{let e=document.createElement('div');e.className='empty';e.textContent=['YOUR STORY','YOUR FRIENDS','YOUR MOMENTS','YOUR LOVE'][ix%4];div.append(e)}let label=document.createElement('span');label.textContent=list[ix]?`Memory ${ix+1} of ${list.length}`:demoCaptions[ix%4];div.append(label);memory.append(div)}}
 function turnPhoto(direction){const count=photos.length||4;photoIndex=(photoIndex+direction+count)%count;renderPhotos();say(`Photo ${photoIndex+1} of ${count} · Swipe to browse`)}
-$('photos').addEventListener('change',e=>{photoUrls.forEach(URL.revokeObjectURL);photoUrls=[];const files=[...e.target.files].filter(x=>x.type.startsWith('image/')).slice(0,60);photos=files.map(f=>{const u=URL.createObjectURL(f);photoUrls.push(u);return u});photoIndex=0;renderPhotos();say(`${photos.length} personal photos loaded locally. Nothing was uploaded.`)});
+$('photos').addEventListener('change',e=>{const files=[...e.target.files].filter(x=>x.type.startsWith('image/')).slice(0,60);if(!files.length)return;photoUrls.forEach(URL.revokeObjectURL);photoUrls=[];photos=[...includedPhotos,...files.map(f=>{const u=URL.createObjectURL(f);photoUrls.push(u);return u})];e.target.value='';photoIndex=0;renderPhotos();say(`${photos.length} personal photos loaded locally. Nothing was uploaded.`)});
 function gesture(landmarks) {
   const now = performance.now();
 
@@ -94,8 +161,7 @@ function gesture(landmarks) {
     ? '0 0 20px #ffd78a'
     : '';
 
-  status.textContent = 'V1.6 · ' +
-    (pinch ? 'PINCH' : 'HAND DETECTED');
+  if(scene!==2||candleState==='ready')status.textContent=pinch?'PINCH':'HAND DETECTED';
 
   function confirmHold(valid, duration = 450) {
     if (!valid || !pinch || !gesture.ready) {
@@ -110,7 +176,7 @@ function gesture(landmarks) {
       Math.round((now - pinchAnchor) / duration * 100)
     );
 
-    status.textContent = 'V1.6 · CONFIRM ' + progress + '%';
+    status.textContent = 'V1.3 · CONFIRM ' + progress + '%';
 
     if (progress >= 100) {
       gesture.ready = false;
@@ -175,84 +241,19 @@ function gesture(landmarks) {
       flame.classList.remove('on');
     }
 
-    } else if (scene === 2) {
+  } else if (scene === 2) {
     cake.classList.add('show');
 
-    if (gesture.candleEntry !== sceneEntered) {
-      gesture.candleEntry = sceneEntered;
-      gesture.candleState = 'ready';
-      flame.dataset.lit = 'false';
-      flame.classList.remove('on');
-      flame.style.display = 'none';
-      flame.getAnimations().forEach(a => a.cancel());
-    }
+    if (candleState === 'ready') {
+      say('Release, then hold your pinch to light the candle.');
 
-    if (gesture.candleState === 'ready') {
-      status.textContent = 'V1.6 · CANDLE READY';
-      say('Release, then hold your pinch to light.');
-
-      if (confirmHold(true, 450)) {
-        gesture.candleState = 'lit';
-        flame.dataset.lit = 'true';
-        lastBlow = Date.now() + 3000;
-
-        Object.assign(flame.style, {
-          display: 'block',
-          position: 'absolute',
-          zIndex: '100',
-          width: '18px',
-          height: '30px',
-          left: '110px',
-          bottom: '180px',
-          borderRadius: '50% 50% 45% 45%',
-          transform: 'none',
-          background: 'radial-gradient(ellipse at 50% 75%, #fff 5%, #fff2ae 30%, #ffbd48 65%, #ff7518 100%)',
-          boxShadow: '0 0 18px #ffd27a, 0 0 45px #ffae55'
-        });
-
-        flame.classList.add('on');
-
-        flame.animate([
-          { transform: 'scale(1, 1)' },
-          { transform: 'scale(.88, 1.12)' },
-          { transform: 'scale(1.06, .95)' },
-          { transform: 'scale(1, 1)' }
-        ], {
-          duration: 650,
-          iterations: Infinity
-        });
-
-        status.textContent = 'V1.6 · CANDLE LIT';
-        say('Candle lit! Make a wish.');
+      if (confirmHold(true)) {
+        lightCandle();
       }
-
-    } else if (gesture.candleState === 'lit') {
-      if (flame.dataset.lit !== 'true') {
-        gesture.candleState = 'extinguished';
-        flame.style.display = 'none';
-        flame.getAnimations().forEach(a => a.cancel());
-        status.textContent = 'V1.6 · WISH MADE';
-        say('Wish made!');
-      } else {
-        status.textContent = 'V1.6 · CANDLE LIT';
-
-        say(Date.now() - lastBlow > 1000
-          ? 'Pucker your lips or wave.'
-          : 'Make a wish. Keep quiet for a moment.');
-      }
-
-    } else {
-      flame.style.display = 'none';
-      status.textContent = 'V1.6 · WISH MADE';
     }
 
   } else if (scene === 3) {
-    flame.style.display = 'none';
-    flame.getAnimations().forEach(a => a.cancel());
-
-    if (!swipeAnchor) {
-      swipeAnchor = {x, time: now};
-    }
+    if (!swipeAnchor) swipeAnchor = {x, time: now};
 
     if (Math.abs(x - swipeAnchor.x) > 90 &&
         now - lastSwipe > 450) {
@@ -263,14 +264,11 @@ function gesture(landmarks) {
       swipeAnchor = {x, time: now};
     }
 
- } else if (scene === 4) {
+  } else if (scene === 4) {
     if (pinch) {
       if (lastPoint &&
           Math.hypot(x - lastPoint.x, y - lastPoint.y) < 90) {
-        canvasCtx.beginPath();
-        canvasCtx.moveTo(lastPoint.x, lastPoint.y);
-        canvasCtx.lineTo(x, y);
-        canvasCtx.stroke();
+        wipe(lastPoint,{x,y});
       }
       lastPoint = {x, y};
     } else {
@@ -283,7 +281,7 @@ function gesture(landmarks) {
 
 async function tracking(){
   try {
-    status.textContent = 'V1.6 · AI LOADING';
+    status.textContent = 'V1.1 · AI LOADING';
     say('Loading AI hand tracking...');
 
     const lib = await import(
@@ -307,7 +305,7 @@ async function tracking(){
           minTrackingConfidence: 0.45
         });
         modelReady = true;
-        status.textContent = 'V1.6 · AI ' + delegate;
+        status.textContent = 'V1.1 · AI ' + delegate;
         say('Hand tracking ready. Show your palm.');
         return;
       } catch (error) {
@@ -317,17 +315,124 @@ async function tracking(){
     }
   } catch (error) {
     console.error(error);
-    status.textContent = 'V1.6 · AI ERROR';
+    status.textContent = 'V1.1 · AI ERROR';
     say('AI error: ' + error.message);
   }
 }
 
-function detect(){if(!stage.classList.contains('live'))return;try{if(modelReady&&cam.readyState>=2&&cam.currentTime!==videoLastTime){videoLastTime=cam.currentTime;const result=handModel.detectForVideo(cam,performance.now());gesture(result.landmarks);wish16(result.landmarks,performance.now())}}catch(e){console.warn('Tracking error',e)}requestAnimationFrame(detect)}
 let face16=null, tick16=0, entry16=-1, armed16=0, lip16=0, anchor16=null, neutral16=false;
 async function loadFace16(){try{const lib=await import('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.21/+esm');const resolver=await lib.FilesetResolver.forVisionTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.21/wasm');for(const delegate of ['GPU','CPU']){try{face16=await lib.FaceLandmarker.createFromOptions(resolver,{baseOptions:{modelAssetPath:'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task',delegate},runningMode:'VIDEO',numFaces:1,outputFaceBlendshapes:true});break}catch(e){console.warn(e)}}}catch(e){console.warn(e)}}
-function finish16(){if(scene!==2||flame.dataset.lit!=='true')return;const entry=sceneEntered;gesture.candleState='extinguished';flame.dataset.lit='false';flame.classList.remove('on');flame.getAnimations().forEach(a=>a.cancel());flame.style.display='none';status.textContent='V1.6 · WISH MADE';say('Wish made!');setTimeout(()=>{if(scene===2&&sceneEntered===entry)setScene(3)},1500)}
-function wish16(hands,now){if(scene!==2||flame.dataset.lit!=='true'){entry16=-1;return}if(entry16!==sceneEntered){entry16=sceneEntered;armed16=now+1200;lip16=0;anchor16=null;neutral16=false}if(now<armed16)return;status.textContent='V1.6 · '+(face16?'FACE + WAVE READY':'WAVE READY');say('Pucker your lips or wave an open hand sideways.');if(face16&&now-tick16>90){tick16=now;try{const c=face16.detectForVideo(cam,now).faceBlendshapes?.[0]?.categories||[];const p=Math.max(...c.filter(x=>['mouthPucker','mouthFunnel'].includes(x.categoryName)).map(x=>x.score),0);if(c.length&&p<.25)neutral16=true;if(c.length&&neutral16&&p>.42){if(!lip16)lip16=now;if(now-lip16>=600){finish16();return}}else lip16=0}catch(e){lip16=0;console.warn(e)}}if(lip16)say('Blowing… '+Math.min(99,Math.round((now-lip16)/6))+'%');const lm=hands?.[0];if(!lm){anchor16=null;return}const d=(a,b)=>Math.hypot((a.x-b.x)*cam.videoWidth,(a.y-b.y)*cam.videoHeight);const open=[8,12,16,20].filter(i=>d(lm[i],lm[0])>d(lm[i-2],lm[0])*1.15).length>=3&&d(lm[4],lm[8])>d(lm[0],lm[9])*.55;if(!open){anchor16=null;return}const {x,y}=lm[9];if(!anchor16||now-anchor16.t>900)anchor16={x,y,t:now};else if(Math.abs(x-anchor16.x)>.16&&Math.abs(y-anchor16.y)<.2&&now-anchor16.t>100)finish16()}
-async function start(){if(!navigator.mediaDevices?.getUserMedia){alert('Camera requires HTTPS or localhost, and a compatible browser.');return}try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:{ideal:1280},height:{ideal:720}},audio:false});cam.srcObject=stream;await cam.play();stage.classList.add('live');$('welcome').classList.add('hidden');status.textContent='● CAMERA LIVE';status.classList.add('active');setScene(0);tracking().then(loadFace16);requestAnimationFrame(detect)}catch(e){alert('Could not access camera: '+e.message+'. Check browser permissions and HTTPS.')}}$('start').onclick=start;$('next').onclick=()=>setScene(scene+1);$('prev').onclick=()=>setScene(scene-1);$('yes').onclick=()=>setScene(2);$('no').onmouseenter=()=>{$('no').style.transform=`translate(${Math.random()*160-80}px,${Math.random()*110-55}px)`};$('clear').onclick=()=>{canvasCtx.clearRect(0,0,innerWidth,innerHeight);lastPoint=null};
+function wish16(hands,now){if(scene!==2||flame.dataset.lit!=='true'){entry16=-1;return}if(entry16!==sceneEntered){entry16=sceneEntered;armed16=now+1200;lip16=0;anchor16=null;neutral16=false}if(now<armed16)return;if(face16&&now-tick16>90){tick16=now;try{const c=face16.detectForVideo(cam,now).faceBlendshapes?.[0]?.categories||[];const p=Math.max(...c.filter(x=>['mouthPucker','mouthFunnel'].includes(x.categoryName)).map(x=>x.score),0);if(c.length&&p<.25)neutral16=true;if(c.length&&neutral16&&p>.42){if(!lip16)lip16=now;if(now-lip16>=600){extinguish();return}}else lip16=0}catch(e){lip16=0;console.warn(e)}}const lm=hands?.[0];if(!lm){anchor16=null;return}const d=(a,b)=>Math.hypot((a.x-b.x)*cam.videoWidth,(a.y-b.y)*cam.videoHeight);const open=[8,12,16,20].filter(i=>d(lm[i],lm[0])>d(lm[i-2],lm[0])*1.15).length>=3&&d(lm[4],lm[8])>d(lm[0],lm[9])*.55;if(!open){anchor16=null;return}const {x,y}=lm[9];if(!anchor16||now-anchor16.t>900)anchor16={x,y,t:now};else if(Math.abs(x-anchor16.x)>.16&&Math.abs(y-anchor16.y)<.2&&now-anchor16.t>100)extinguish()}
+
+function detect(){if(!stage.classList.contains('live'))return;try{if(modelReady&&cam.readyState>=2&&cam.currentTime!==videoLastTime){videoLastTime=cam.currentTime;const result=handModel.detectForVideo(cam,performance.now());gesture(result.landmarks);wish16(result.landmarks,performance.now())}}catch(e){console.warn('Tracking error',e)}requestAnimationFrame(detect)}
+function resetCandle(){
+  candleState='ready';
+  blowStart=null;
+  flame.dataset.lit='false';
+  flame.classList.remove('on');
+  $('candleAction').hidden=scene!==2;
+  $('candleAction').textContent='LIGHT CANDLE';
+}
+function lightCandle(){
+  if(scene!==2||candleState!=='ready')return;
+  candleState='lit';
+  candleLitAt=performance.now();
+  flame.dataset.lit='true';
+  flame.classList.add('on');
+  status.textContent='CANDLE LIT';
+  $('candleAction').textContent='BLOW OUT CANDLE';
+  candleHint();
+}
+function candleHint(){
+  if(scene!==2||candleState!=='lit')return;
+  say(micState==='ready'?'Make a wish, then blow into your microphone, pucker your lips, or wave sideways.':'Make a wish, then pucker your lips, wave sideways, or tap Blow Out Candle.');
+}
+function extinguish(){
+  if(scene!==2||candleState!=='lit')return;
+  candleState='out';
+  flame.dataset.lit='false';
+  flame.classList.remove('on');
+  $('candleAction').hidden=true;
+  status.textContent='WISH MADE';
+  say('Wish made! Your birthday memories are next.');
+  const visit=sceneEntered;
+  setTimeout(()=>{if(scene===2&&sceneEntered===visit)setScene(3)},950);
+}
+$('candleAction').onclick=()=>candleState==='ready'?lightCandle():extinguish();
+async function microphone(){
+  try{
+    micStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
+    await micContext.resume();
+    const source=micContext.createMediaStreamSource(micStream);
+    analyser=micContext.createAnalyser();
+    analyser.fftSize=1024;
+    source.connect(analyser);
+    const samples=new Float32Array(analyser.fftSize);
+    let floor=.009;
+    micState='ready';
+    candleHint();
+    function listen(now){
+      analyser.getFloatTimeDomainData(samples);
+      let energy=0;
+      for(const value of samples)energy+=value*value;
+      const rms=Math.sqrt(energy/samples.length);
+      if(scene!==2||candleState!=='lit'){
+        floor+=.025*(Math.min(rms,.035)-floor);
+        blowStart=null;
+      }else if(now-candleLitAt>2200&&rms>Math.max(.028,floor*3)){
+        blowStart??=now;
+        if(now-blowStart>=240)extinguish();
+      }else{
+        blowStart=null;
+      }
+      requestAnimationFrame(listen);
+    }
+    requestAnimationFrame(listen);
+  }catch(error){
+    micStream?.getTracks().forEach(track=>track.stop());
+    micState='off';
+    candleHint();
+  }
+}
+function enter(){
+  stage.classList.add('live');
+  $('welcome').classList.add('hidden');
+  status.textContent=stream?'CAMERA LIVE':'TAP TO PLAY';
+  setScene(0);
+  if(!stream)say('Tap Next to begin.');
+}
+async function start(){
+  $('start').disabled=$('manualStart').disabled=true;
+  try{
+    const Audio=window.AudioContext||window.webkitAudioContext;
+    if(Audio){
+      micContext=new Audio();
+      micContext.resume().catch(()=>{});
+    }
+    stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:{ideal:1280},height:{ideal:720}},audio:false});
+    cam.srcObject=stream;
+    await cam.play();
+    enter();
+    if(micContext)microphone();
+    tracking().then(loadFace16);
+    requestAnimationFrame(detect);
+  }catch(error){
+    stream?.getTracks().forEach(track=>track.stop());
+    stream=null;
+    cam.srcObject=null;
+    micContext?.close().catch(()=>{});
+    enter();
+    say('Camera unavailable. Use the buttons to continue.');
+  }
+}
+$('start').onclick=start;
+$('manualStart').onclick=enter;
+$('next').onclick=()=>setScene(scene+1);
+$('prev').onclick=()=>setScene(scene-1);
+$('yes').onclick=()=>setScene(2);
+$('no').onmouseenter=()=>$('no').style.transform=`translate(${Math.random()*160-80}px,${Math.random()*110-55}px)`;
+$('clear').textContent='RESET GLASS';
+$('clear').onclick=()=>{paintFog();lastPoint=null};
 function recordCanvas(){const c=document.createElement('canvas');const ctx=c.getContext('2d');c.width=720;c.height=1280;const scale=Math.max(c.width/innerWidth,c.height/innerHeight);function frame(){if(!recorder||recorder.state==='inactive')return;ctx.fillStyle='#14271d';ctx.fillRect(0,0,c.width,c.height);ctx.save();if(cam.readyState>=2){const cameraScale=Math.max(c.width/cam.videoWidth,c.height/cam.videoHeight);ctx.translate(c.width,0);ctx.scale(-1,1);ctx.drawImage(cam,(c.width-cam.videoWidth*cameraScale)/2,(c.height-cam.videoHeight*cameraScale)/2,cam.videoWidth*cameraScale,cam.videoHeight*cameraScale);}ctx.restore();ctx.fillStyle='#fff2df';ctx.textAlign='center';ctx.font='20px Georgia';ctx.fillText('LOVE ME FOREVER.',c.width/2,65);ctx.font='48px Georgia';ctx.fillText(info[scene][0],c.width/2,180);if(scene===4){ctx.drawImage(drawing,0,0,c.width,c.height)}requestAnimationFrame(frame)}return{canvas:c,frame}}
 // Recording currently exports the camera and handwritten strokes; CSS/DOM overlays are not captured. Warn users rather than implying full composite capture.
 $('record').onclick=()=>{if(!stream)return;if(recorder&&recorder.state==='recording'){recorder.stop();$('record').textContent='● RECORD';return}if(!window.MediaRecorder){say('Recording is not supported by this browser.');return}say('Recording beta: camera and handwriting only; 3D cake and photos are not included yet.');const {canvas,frame}=recordCanvas();let recStream=canvas.captureStream(24);let opts=MediaRecorder.isTypeSupported('video/webm;codecs=vp9')?{mimeType:'video/webm;codecs=vp9'}:{};recorder=new MediaRecorder(recStream,opts);recordParts=[];recorder.ondataavailable=e=>{if(e.data.size)recordParts.push(e.data)};recorder.onstop=()=>{let blob=new Blob(recordParts,{type:recorder.mimeType||'video/webm'});let url=URL.createObjectURL(blob);let a=document.createElement('a');a.href=url;a.download='love-me-forever.webm';a.click();setTimeout(()=>URL.revokeObjectURL(url),5000)};recorder.start();$('record').textContent='■ STOP';frame()};
