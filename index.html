@@ -163,7 +163,7 @@ function wipe(from,to,control=null){
   canvasCtx.shadowColor='#0009';
   canvasCtx.shadowBlur=7;
   canvasCtx.lineCap='round';
-  canvasCtx.lineWidth=Math.max(11,Math.min(20,innerWidth*.029));
+  canvasCtx.lineWidth=Math.max(11,Math.min(20,innerWidth*.029))*(to.pressure==null?1:.65+.65*to.pressure);
   canvasCtx.beginPath();
   canvasCtx.moveTo(from.x,from.y);
   if(control)canvasCtx.quadraticCurveTo(control.x,control.y,to.x,to.y);
@@ -186,8 +186,8 @@ function extendStroke(stroke,point,smoothing=1){
     return {point,end:point};
   }
   const previous=stroke.point;
-  const next={x:previous.x+(point.x-previous.x)*smoothing,y:previous.y+(point.y-previous.y)*smoothing};
-  const end={x:(previous.x+next.x)/2,y:(previous.y+next.y)/2};
+  const next={x:previous.x+(point.x-previous.x)*smoothing,y:previous.y+(point.y-previous.y)*smoothing,pressure:point.pressure};
+  const end={x:(previous.x+next.x)/2,y:(previous.y+next.y)/2,pressure:next.pressure};
   wipe(stroke.end,end,previous);
   return {point:next,end};
 }
@@ -325,13 +325,23 @@ $('photos').addEventListener('change',e=>{const files=[...e.target.files].filter
 
 let airWriteAt17=0;
 let airSeen18=0,airHeld18=0,airScene18=-1;
-function stabilizedAirStroke17(tip,now){
-  if(!lastPoint){lastPoint=extendStroke(null,tip);return;}
-  const prev=lastPoint.point,dx=tip.x-prev.x,dy=tip.y-prev.y,d=Math.hypot(dx,dy);
-  if(d<3.5)return;
-  const limited=Math.min(d-2,32);
-  const gain=Math.min(.65,.22+d/100);
-  lastPoint=extendStroke(lastPoint,{x:prev.x+dx/d*limited*gain,y:prev.y+dy/d*limited*gain},.75);
+let airFilter19=null;
+function stabilizedAirStroke17(tip,now,ratio){
+  const pressure=Math.max(0,Math.min(1,(.57-ratio)/.48));
+  if(!lastPoint||!airFilter19){
+    airFilter19={x:tip.x,y:tip.y,t:now,raw:tip,v:0,p:pressure};
+    lastPoint=extendStroke(null,{...tip,pressure});return;
+  }
+  const f=airFilter19,dt=Math.max(.008,Math.min(.08,(now-f.t)/1000));
+  const speed=Math.hypot(tip.x-f.raw.x,tip.y-f.raw.y)/dt;
+  f.v+=.12*(speed-f.v);f.raw=tip;f.t=now;f.p+=.12*(pressure-f.p);
+  const d=Math.hypot(tip.x-f.x,tip.y-f.y);
+  const dead=4.5;
+  if(d<=dead)return;
+  const alpha=1-Math.exp(-dt*(3.5+Math.min(12,Math.max(0,d-dead)*.16)));
+  const gain=alpha*(d-dead)/d;
+  f.x+=(tip.x-f.x)*gain;f.y+=(tip.y-f.y)*gain;
+  lastPoint=extendStroke(lastPoint,{x:f.x,y:f.y,pressure:f.p},1);
 }
 function gesture(landmarks) {
   const now = performance.now();
@@ -508,11 +518,12 @@ function gesture(landmarks) {
   } else if (scene === 4) {
     if(pinch&&!pointerStroke){
       const tip=map({x:(pt.x+thumb.x)/2,y:(pt.y+thumb.y)/2});
-      stabilizedAirStroke17(tip,now);
+      stabilizedAirStroke17(tip,now,ratio);
       status.textContent='WRITING';
     }else{
       finishStroke(lastPoint);
       lastPoint=null;
+      airFilter19=null;
       status.textContent='PEN UP';
     }
   }
