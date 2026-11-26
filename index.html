@@ -50,6 +50,8 @@
 @keyframes mirror-light{from{background-position:0% center}to{background-position:100% center}}
 @keyframes glass-condense{from{opacity:0}to{opacity:1}}
 @media(prefers-reduced-motion:reduce){.stage[data-scene="3"] .photo{transition:none}.mirror-surface::after,.stage[data-scene="4"] .drawCanvas{animation:none}}
+.stage.has-camera[data-scene="4"] .camera{opacity:1;filter:brightness(1.16) saturate(.9)}
+.stage.has-camera[data-scene="4"] .veil,.stage.has-camera[data-scene="4"] .mirror-surface{display:none}
 </style>
 </head>
 <body>
@@ -135,7 +137,7 @@ function returnFog(now){
   }
   fogFrame=requestAnimationFrame(returnFog);
 }
-function wipe(from,to){
+function wipe(from,to,control=null){
   lastWipe=performance.now();
   if(!fogFrame&&!matchMedia('(prefers-reduced-motion: reduce)').matches){
     fogFrame=requestAnimationFrame(returnFog);
@@ -149,7 +151,8 @@ function wipe(from,to){
   canvasCtx.lineWidth=Math.max(10,Math.min(17,innerWidth*.027));
   canvasCtx.beginPath();
   canvasCtx.moveTo(from.x,from.y);
-  canvasCtx.lineTo(to.x+.01,to.y);
+  if(control)canvasCtx.quadraticCurveTo(control.x,control.y,to.x,to.y);
+  else canvasCtx.lineTo(to.x+.01,to.y);
   canvasCtx.stroke();
   canvasCtx.restore();
 }
@@ -162,17 +165,36 @@ function resize(){
 }
 addEventListener('resize',resize);resize();
 let pointerStroke=null;
+function extendStroke(stroke,point,smoothing=1){
+  if(!stroke){
+    wipe(point,point);
+    return {point,end:point};
+  }
+  const previous=stroke.point;
+  const next={x:previous.x+(point.x-previous.x)*smoothing,y:previous.y+(point.y-previous.y)*smoothing};
+  const end={x:(previous.x+next.x)/2,y:(previous.y+next.y)/2};
+  wipe(stroke.end,end,previous);
+  return {point:next,end};
+}
+function finishStroke(stroke){
+  if(stroke)wipe(stroke.end,stroke.point);
+}
 drawing.onpointerdown=e=>{
-  if(scene!==4||!e.isPrimary)return;
+  if(scene!==4||!e.isPrimary||e.button!==0)return;
   drawing.setPointerCapture(e.pointerId);
-  pointerStroke={x:e.clientX,y:e.clientY};
-  wipe(pointerStroke,pointerStroke);
+  pointerStroke=extendStroke(null,{x:e.clientX,y:e.clientY});
 };
 drawing.onpointermove=e=>{
   if(!pointerStroke||!e.isPrimary)return;
-  const point={x:e.clientX,y:e.clientY};
-  wipe(pointerStroke,point);
-  pointerStroke=point;
+  const samples=e.getCoalescedEvents?.();
+  for(const sample of samples?.length?samples:[e]){
+    pointerStroke=extendStroke(pointerStroke,{x:sample.clientX,y:sample.clientY});
+  }
+};
+drawing.onpointerup=e=>{
+  if(!pointerStroke||!e.isPrimary)return;
+  finishStroke(extendStroke(pointerStroke,{x:e.clientX,y:e.clientY}));
+  pointerStroke=null;
 };
 drawing.onlostpointercapture=()=>{pointerStroke=null};
 $('uploadLabel').onclick=()=>$('photos').click();
@@ -452,14 +474,13 @@ function gesture(landmarks) {
     }
 
   } else if (scene === 4) {
-    if (pinch) {
-      if (lastPoint &&
-          Math.hypot(x - lastPoint.x, y - lastPoint.y) < 90) {
-        wipe(lastPoint,{x,y});
-      }
-      lastPoint = {x, y};
-    } else {
-      lastPoint = null;
+    if(pinch&&!pointerStroke){
+      const tip=map({x:(pt.x+thumb.x)/2,y:(pt.y+thumb.y)/2});
+      if(lastPoint&&Math.hypot(tip.x-lastPoint.point.x,tip.y-lastPoint.point.y)>Math.max(150,innerWidth*.32))lastPoint=null;
+      lastPoint=extendStroke(lastPoint,tip,.68);
+    }else{
+      finishStroke(lastPoint);
+      lastPoint=null;
     }
   }
 
@@ -532,7 +553,7 @@ function lightCandle(){
 }
 function candleHint(){
   if(scene!==2||candleState!=='lit')return;
-  say(micState==='ready'?'Make a wish, then blow into your microphone, pucker your lips, or wave sideways.':'Make a wish, then pucker your lips, wave sideways, or tap Blow Out Candle.');
+  say(micState==='ready'?'Make a wish, then wait for MIC READY, then blow gently toward your microphone. You can also pucker or wave.':'Make a wish, then pucker your lips, wave sideways, or tap Blow Out Candle.');
 }
 function extinguish(){
   if(scene!==2||candleState!=='lit')return;
@@ -555,7 +576,7 @@ async function microphone(){
     analyser.fftSize=1024;
     source.connect(analyser);
     const samples=new Float32Array(analyser.fftSize);
-    let floor=.009;
+    let floor=.006, blowEnergy=0, previousSampleAt=0, readyToBlow=false;
     micState='ready';
     candleHint();
     function listen(now){
@@ -563,14 +584,20 @@ async function microphone(){
       let energy=0;
       for(const value of samples)energy+=value*value;
       const rms=Math.sqrt(energy/samples.length);
-      if(scene!==2||candleState!=='lit'){
-        floor+=.025*(Math.min(rms,.035)-floor);
-        blowStart=null;
-      }else if(now-candleLitAt>2200&&rms>Math.max(.028,floor*3)){
-        blowStart??=now;
-        if(now-blowStart>=240)extinguish();
+      const elapsed=Math.min(55,now-previousSampleAt);
+      previousSampleAt=now;
+      if(scene!==2||candleState!=='lit'||now-candleLitAt<900){
+        floor+=.035*(Math.min(rms,.04)-floor);
+        blowEnergy=0;
+        readyToBlow=false;
       }else{
-        blowStart=null;
+        if(!readyToBlow){
+          readyToBlow=true;
+          status.textContent='MIC READY';
+        }
+        const threshold=Math.max(.014,floor*2.3);
+        blowEnergy=Math.max(0,blowEnergy+elapsed*(rms>threshold?1:-.65));
+        if(blowEnergy>=165)extinguish();
       }
       requestAnimationFrame(listen);
     }
@@ -583,6 +610,7 @@ async function microphone(){
 }
 function enter(){
   stage.classList.add('live');
+  stage.classList.toggle('has-camera',Boolean(stream));
   $('welcome').classList.add('hidden');
   status.textContent=stream?'CAMERA LIVE':'TAP TO PLAY';
   setScene(0);
@@ -619,7 +647,7 @@ $('prev').onclick=()=>setScene(sceneOrder[Math.max(0,sceneOrder.indexOf(scene)-1
 $('yes').onclick=()=>setScene(3);
 $('no').onmouseenter=()=>$('no').style.transform=`translate(${Math.random()*160-80}px,${Math.random()*110-55}px)`;
 $('clear').textContent='RESET GLASS';
-$('clear').onclick=()=>{paintFog();lastPoint=null};
+$('clear').onclick=()=>{paintFog();lastPoint=null;pointerStroke=null};
 function recordCanvas(){const c=document.createElement('canvas');const ctx=c.getContext('2d');c.width=720;c.height=1280;const scale=Math.max(c.width/innerWidth,c.height/innerHeight);function frame(){if(!recorder||recorder.state==='inactive')return;ctx.fillStyle='#14271d';ctx.fillRect(0,0,c.width,c.height);ctx.save();if(cam.readyState>=2){const cameraScale=Math.max(c.width/cam.videoWidth,c.height/cam.videoHeight);ctx.translate(c.width,0);ctx.scale(-1,1);ctx.drawImage(cam,(c.width-cam.videoWidth*cameraScale)/2,(c.height-cam.videoHeight*cameraScale)/2,cam.videoWidth*cameraScale,cam.videoHeight*cameraScale);}ctx.restore();ctx.fillStyle='#fff2df';ctx.textAlign='center';ctx.font='20px Georgia';ctx.fillText('LOVE ME FOREVER.',c.width/2,65);ctx.font='48px Georgia';ctx.fillText(info[scene][0],c.width/2,180);if(scene===4){ctx.drawImage(drawing,0,0,c.width,c.height)}requestAnimationFrame(frame)}return{canvas:c,frame}}
 // Recording currently exports the camera and handwritten strokes; CSS/DOM overlays are not captured. Warn users rather than implying full composite capture.
 $('record').onclick=()=>{if(!stream)return;if(recorder&&recorder.state==='recording'){recorder.stop();$('record').textContent='● RECORD';return}if(!window.MediaRecorder){say('Recording is not supported by this browser.');return}say('Recording beta: camera and handwriting only; 3D cake and photos are not included yet.');const {canvas,frame}=recordCanvas();let recStream=canvas.captureStream(24);let opts=MediaRecorder.isTypeSupported('video/webm;codecs=vp9')?{mimeType:'video/webm;codecs=vp9'}:{};recorder=new MediaRecorder(recStream,opts);recordParts=[];recorder.ondataavailable=e=>{if(e.data.size)recordParts.push(e.data)};recorder.onstop=()=>{let blob=new Blob(recordParts,{type:recorder.mimeType||'video/webm'});let url=URL.createObjectURL(blob);let a=document.createElement('a');a.href=url;a.download='love-me-forever.webm';a.click();setTimeout(()=>URL.revokeObjectURL(url),5000)};recorder.start();$('record').textContent='■ STOP';frame()};
