@@ -29,6 +29,17 @@
 .music summary::-webkit-details-marker{display:none}
 .music iframe{display:block;width:100%;height:175px;border:0;border-radius:12px;margin-top:8px;background:#fff}
 .music a{display:inline-block;color:#fff2df;background:#14271d;border-radius:12px;padding:4px 9px;font-size:11px;margin-top:5px}
+.stage[data-scene="3"] .chapter{padding-top:clamp(65px,11dvh,100px)}
+.stage[data-scene="3"] .chapter h2{font-size:clamp(30px,5.5vw,55px)}
+.stage[data-scene="3"] .chapter p{margin-top:7px}
+.stage[data-scene="3"] .memories{inset:clamp(145px,26dvh,220px) 0 calc(100px + env(safe-area-inset-bottom))}
+.stage[data-scene="3"] .photo{width:min(82vw,590px);padding:6px 6px 25px;background:#f1e9dd;display:grid;grid-template-rows:minmax(0,1fr)}
+.stage[data-scene="3"] .photo img{min-height:0;min-width:0;object-fit:contain}
+.stage[data-scene="3"] .message{display:none}
+.stage[data-scene="3"] .controls{padding-bottom:max(15px,env(safe-area-inset-bottom))}
+.stage[data-scene="3"] .controls .btn{min-width:0;padding:10px 13px}
+.stage[data-scene="3"] #record{display:none}
+@media(max-height:440px){.stage[data-scene="3"] .chapter{padding-top:48px}.stage[data-scene="3"] .memories{inset:108px 0 65px}.stage[data-scene="3"] .chapter p{display:none}}
 </style>
 </head>
 <body>
@@ -55,8 +66,8 @@ const stage=$('stage'),cam=$('camera'),msg=$('message'),status=$('status'),cake=
 const sceneNames=['CAKE','LOVE','CANDLE','MEMORIES','FUTURE'];let scene=0;let hand=null,lastHand=null,photos=[],photoIndex=0,stream=null,micStream=null,analyser=null,recorder=null,recordParts=[],lastSwipe=0,lastBlow=0,isDrawing=false,lastPoint=null,canvasCtx=null,handModel=null,modelReady=false,detectBusy=false,videoLastTime=-1,sceneEntered=0;let lastPinch=false,swipeAnchor=null,pinchAnchor=null,photoUrls=[];
 let candleState='ready', candleLitAt=0, micState='off', micContext=null, blowStart=null;
 const futureText='The Best Is Yet to Come.';
-const info=[['Make a Wish.','Raise your palm to summon your birthday cake.'],['Love Me Forever?','Point to your answer.'],['Light a Candle.','Pinch your fingers together to light it; then blow into your microphone.'],['Birthday Memories.','Swipe, drag, or use the arrow keys to turn the pages.'],[futureText,'Write on the misted glass.']];
-function say(text){msg.textContent=text}function setScene(n){scene=Math.max(0,Math.min(4,n));sceneEntered=performance.now();stage.dataset.scene=scene;resetCandle();if(scene===2){cake.style.left='50%';cake.style.top='65%'}if(scene===4)paintFog();$('photoBack').hidden=$('photoNext').hidden=scene!==3;$('next').hidden=scene===4;swipeAnchor=null;pinchAnchor=null;isDrawing=false;lastPoint=null;lastPinch=false;const [t,d]=info[scene];$('headline').textContent=t;$('description').textContent=d;cake.classList.toggle('show',scene===0||scene===2);choice.classList.toggle('show',scene===1);memory.style.display=scene===3?'block':'none';drawing.style.display=scene===4?'block':'none';$('uploadLabel').hidden=scene!==3;$('clear').classList.toggle('hidden',scene!==4);flame.classList.toggle('on',scene===2&&flame.dataset.lit==='true');if(scene===0){flame.dataset.lit='false';flame.classList.remove('on')}if(scene===3){renderPhotos();if(!stream)status.textContent='TAP TO PLAY'}if(scene===4)status.textContent='WRITE ON THE GLASS';say(['Show your palm to reveal the cake.','Point to YES to celebrate yourself.','Pinch to light, then blow out the candle.','Swipe left or right to browse the album.','Pinch and move, or drag across the glass. Reveal a message or write your own.'][scene])}
+const info=[['Make a Wish.','Raise your palm to summon your birthday cake.'],['Love Me Forever?','Point to your answer.'],['Light a Candle.','Pinch your fingers together to light it; then blow into your microphone.'],['Birthday Memories.','Swipe to browse, or choose Write on the Glass to continue.'],[futureText,'Write on the misted glass.']];
+function say(text){msg.textContent=text}function setScene(n){scene=Math.max(0,Math.min(4,n));sceneEntered=performance.now();stage.dataset.scene=scene;$('next').textContent=scene===3?'WRITE ON THE GLASS →':'NEXT';$('next').classList.toggle('secondary',scene!==3);resetCandle();if(scene===2){cake.style.left='50%';cake.style.top='65%'}if(scene===4)paintFog();$('photoBack').hidden=$('photoNext').hidden=scene!==3;$('next').hidden=scene===4;swipeAnchor=null;pinchAnchor=null;isDrawing=false;lastPoint=null;lastPinch=false;const [t,d]=info[scene];$('headline').textContent=t;$('description').textContent=d;cake.classList.toggle('show',scene===0||scene===2);choice.classList.toggle('show',scene===1);memory.style.display=scene===3?'block':'none';drawing.style.display=scene===4?'block':'none';$('uploadLabel').hidden=scene!==3;$('clear').classList.toggle('hidden',scene!==4);flame.classList.toggle('on',scene===2&&flame.dataset.lit==='true');if(scene===0){flame.dataset.lit='false';flame.classList.remove('on')}if(scene===3){renderPhotos();if(!stream)status.textContent='TAP TO PLAY'}if(scene===4)status.textContent='WRITE ON THE GLASS';say(['Show your palm to reveal the cake.','Point to YES to celebrate yourself.','Pinch to light, then blow out the candle.','Swipe left or right to browse the album.','Drag your finger or mouse to draw. With the camera on, pinch and move your hand.'][scene])}
 function paintFog(){
   canvasCtx.globalCompositeOperation='source-over';
   canvasCtx.clearRect(0,0,innerWidth,innerHeight);
