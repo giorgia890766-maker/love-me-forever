@@ -97,7 +97,7 @@ const fogTexture=document.createElement('canvas');
 let lastWipe=-Infinity,fogFrame=0;
 const sceneOrder=[0,2,1,3,4];
 let albumTapTimer=null,albumPinchStarted=null;
-const info=[['Make a Wish.','Raise your palm to summon your birthday cake.'],['Love Me Forever?','Point to your answer.'],['Light a Candle.','Pinch your fingers together to light it; then blow into your microphone.'],['Birthday Memories.','Eleven moments, one birthday. Swipe slowly to see each photo in full.'],[futureText,'Write on the misted glass.']];
+const info=[['Make a Wish.','Raise your palm to summon your birthday cake.'],['Love Me Forever?','Point to your answer.'],['Light a Candle.','Pinch to light, take your time to make a wish, then blow.'],['Birthday Memories.','Eleven moments, one birthday. Swipe slowly to see each photo in full.'],[futureText,'Write on the misted glass.']];
 function say(text){msg.textContent=text}function setScene(n){scene=Math.max(0,Math.min(4,n));sceneEntered=performance.now();wheelLast=-Infinity;clearTimeout(albumTapTimer);albumTapTimer=null;albumPinchStarted=null;cancelHandDrag();stage.dataset.scene=scene;$('next').textContent=scene===3?'FROSTED GLASS →':'NEXT';$('next').classList.toggle('secondary',scene!==3);resetCandle();if(scene===2){cake.style.left='50%';cake.style.top='65%'}if(scene===4)paintFog();$('photoBack').hidden=$('photoNext').hidden=scene!==3;$('next').hidden=scene===4;swipeAnchor=null;pinchAnchor=null;isDrawing=false;lastPoint=null;lastPinch=false;const [t,d]=info[scene];$('headline').textContent=t;$('description').textContent=d;cake.classList.toggle('show',scene===0||scene===2);choice.classList.toggle('show',scene===1);memory.style.display=scene===3?'block':'none';drawing.style.display=scene===4?'block':'none';$('uploadLabel').hidden=scene!==3;$('clear').classList.toggle('hidden',scene!==4);flame.classList.toggle('on',scene===2&&flame.dataset.lit==='true');if(scene===0){flame.dataset.lit='false';flame.classList.remove('on')}if(scene===3){renderPhotos();if(!stream)status.textContent='TAP TO PLAY'}if(scene===4)status.textContent='WRITE ON THE GLASS';say(['Show your palm to reveal the cake.','Point to YES to celebrate yourself.','Pinch to light, then blow out the candle.','Swipe left or right to browse the album.','Drag to draw on the ice, or pinch and move your hand.'][scene])}
 function paintFog(){
   cancelAnimationFrame(fogFrame);
@@ -561,7 +561,7 @@ async function tracking(){
 
 let face16=null, tick16=0, entry16=-1, armed16=0, lip16=0, anchor16=null, neutral16=false;
 async function loadFace16(){try{const lib=await import('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.21/+esm');const resolver=await lib.FilesetResolver.forVisionTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.21/wasm');for(const delegate of ['GPU','CPU']){try{face16=await lib.FaceLandmarker.createFromOptions(resolver,{baseOptions:{modelAssetPath:'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task',delegate},runningMode:'VIDEO',numFaces:1,outputFaceBlendshapes:true});break}catch(e){console.warn(e)}}}catch(e){console.warn(e)}}
-function wish16(hands,now){if(scene!==2||flame.dataset.lit!=='true'){entry16=-1;return}if(entry16!==sceneEntered){entry16=sceneEntered;armed16=now+1200;lip16=0;anchor16=null;neutral16=false}if(now<armed16)return;if(face16&&now-tick16>90){tick16=now;try{const c=face16.detectForVideo(cam,now).faceBlendshapes?.[0]?.categories||[];const p=Math.max(...c.filter(x=>['mouthPucker','mouthFunnel'].includes(x.categoryName)).map(x=>x.score),0);if(c.length&&p<.25)neutral16=true;if(c.length&&neutral16&&p>.42){if(!lip16)lip16=now;if(now-lip16>=600){extinguish();return}}else lip16=0}catch(e){lip16=0;console.warn(e)}}const lm=hands?.[0];if(!lm){anchor16=null;return}const d=(a,b)=>Math.hypot((a.x-b.x)*cam.videoWidth,(a.y-b.y)*cam.videoHeight);const open=[8,12,16,20].filter(i=>d(lm[i],lm[0])>d(lm[i-2],lm[0])*1.15).length>=3&&d(lm[4],lm[8])>d(lm[0],lm[9])*.55;if(!open){anchor16=null;return}const {x,y}=lm[9];if(!anchor16||now-anchor16.t>900)anchor16={x,y,t:now};else if(Math.abs(x-anchor16.x)>.16&&Math.abs(y-anchor16.y)<.2&&now-anchor16.t>100)extinguish()}
+function wish16(hands,now){if(scene!==2||flame.dataset.lit!=='true'){entry16=-1;return}if(entry16!==sceneEntered){entry16=sceneEntered;armed16=candleLitAt+8000;lip16=0;anchor16=null;neutral16=false}if(now<armed16){status.textContent='MAKE A WISH · '+Math.ceil((armed16-now)/1000);return}status.textContent='READY TO BLOW';if(face16&&now-tick16>90){tick16=now;try{const c=face16.detectForVideo(cam,now).faceBlendshapes?.[0]?.categories||[];const p=Math.max(...c.filter(x=>['mouthPucker','mouthFunnel'].includes(x.categoryName)).map(x=>x.score),0);if(c.length&&p<.25)neutral16=true;if(c.length&&neutral16&&p>.48){if(!lip16)lip16=now;if(now-lip16>=1000){extinguish();return}}else lip16=0}catch(e){lip16=0;console.warn(e)}}const lm=hands?.[0];if(!lm){anchor16=null;return}const d=(a,b)=>Math.hypot((a.x-b.x)*cam.videoWidth,(a.y-b.y)*cam.videoHeight);const open=[8,12,16,20].filter(i=>d(lm[i],lm[0])>d(lm[i-2],lm[0])*1.15).length>=3&&d(lm[4],lm[8])>d(lm[0],lm[9])*.55;if(!open){anchor16=null;return}const {x,y}=lm[9];if(!anchor16||now-anchor16.t>900)anchor16={x,y,t:now};else if(Math.abs(x-anchor16.x)>.32&&Math.abs(y-anchor16.y)<.2&&now-anchor16.t>250)extinguish()}
 
 function detect(){if(!stage.classList.contains('live'))return;try{if(modelReady&&cam.readyState>=2&&cam.currentTime!==videoLastTime){videoLastTime=cam.currentTime;const result=handModel.detectForVideo(cam,performance.now());gesture(result.landmarks);wish16(result.landmarks,performance.now())}}catch(e){console.warn('Tracking error',e)}requestAnimationFrame(detect)}
 function resetCandle(){
@@ -584,10 +584,10 @@ function lightCandle(){
 }
 function candleHint(){
   if(scene!==2||candleState!=='lit')return;
-  say(micState==='ready'?'Make a wish, then wait for MIC READY, then blow gently toward your microphone. You can also pucker or wave.':'Make a wish, then pucker your lips, wave sideways, or tap Blow Out Candle.');
+  say('Take eight seconds to make a wish. Then pucker your lips, sweep your open hand sideways, or tap Blow Out Candle.');
 }
 function extinguish(){
-  if(scene!==2||candleState!=='lit')return;
+  if(scene!==2||candleState!=='lit'||performance.now()-candleLitAt<8000)return;
   candleState='out';
   flame.dataset.lit='false';
   flame.classList.remove('on');
@@ -595,7 +595,7 @@ function extinguish(){
   status.textContent='WISH MADE';
   say('Wish made!');
   const visit=sceneEntered;
-  setTimeout(()=>{if(scene===2&&sceneEntered===visit)setScene(1)},950);
+  setTimeout(()=>{if(scene===2&&sceneEntered===visit)setScene(1)},3000);
 }
 $('candleAction').onclick=()=>candleState==='ready'?lightCandle():extinguish();
 async function microphone(){
@@ -651,7 +651,7 @@ async function start(){
   $('start').disabled=$('manualStart').disabled=true;
   try{
     const Audio=window.AudioContext||window.webkitAudioContext;
-    if(Audio){
+    if(false&&Audio){
       micContext=new Audio();
       micContext.resume().catch(()=>{});
     }
@@ -659,7 +659,7 @@ async function start(){
     cam.srcObject=stream;
     await cam.play();
     enter();
-    if(micContext)microphone();
+    
     tracking().then(loadFace16);
     requestAnimationFrame(detect);
   }catch(error){
