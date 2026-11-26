@@ -52,6 +52,21 @@
 @media(prefers-reduced-motion:reduce){.stage[data-scene="3"] .photo{transition:none}.mirror-surface::after,.stage[data-scene="4"] .drawCanvas{animation:none}}
 .stage.has-camera[data-scene="4"] .camera{opacity:1;filter:brightness(1.16) saturate(.9)}
 .stage.has-camera[data-scene="4"] .veil,.stage.has-camera[data-scene="4"] .mirror-surface{display:none}
+
+/* V1.7 — clear iced glass, deliberate air-writing, complete-photo album */
+.stage.has-camera .camera{opacity:1;filter:brightness(1.04) saturate(.96)}
+.stage.has-camera .veil{background:linear-gradient(180deg,rgba(244,249,248,.10),rgba(247,250,252,.025) 48%,rgba(242,247,248,.13));}
+.stage[data-scene="4"] .drawCanvas{opacity:1}
+.stage[data-scene="3"] .memories{inset:clamp(115px,20dvh,165px) 0 calc(86px + env(safe-area-inset-bottom));}
+.stage[data-scene="3"] .photo{box-sizing:border-box;width:min(85vw,580px);height:100%;max-height:100%;max-width:85vw;aspect-ratio:auto;padding:7px 7px 30px;background:#f5f0e9;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:0;overflow:hidden;box-shadow:0 18px 55px #10201844;}
+.stage[data-scene="3"] .photo img{width:100%;height:100%;min-width:0;min-height:0;display:block;object-fit:contain;object-position:center;background:#f0ece5;flex:1 1 auto;}
+.stage[data-scene="3"] .photo.portrait{width:min(53vw,390px,calc((100dvh - 260px)*.7));}
+.stage[data-scene="3"] .photo.landscape{width:min(88vw,760px);height:min(64%,520px);max-height:100%;}
+.stage[data-scene="3"] .photo.landscape img{object-fit:contain;}
+.stage[data-scene="3"] .photo span{position:relative;inset:auto;margin-top:7px;min-height:13px;color:#584d44;font-size:11px;line-height:13px;}
+.stage[data-scene="3"] .photo:not(.current):not(.neighbor){opacity:0;visibility:hidden;}
+.stage[data-scene="3"] .photo.neighbor{opacity:.32;filter:saturate(.75);}
+@media(max-width:600px){.stage[data-scene="3"] .memories{inset:clamp(128px,22dvh,182px) 0 calc(105px + env(safe-area-inset-bottom))}.stage[data-scene="3"] .photo.portrait{width:min(74vw,360px,calc((100dvh - 290px)*.69))}.stage[data-scene="3"] .photo.landscape{width:88vw;height:min(47%,300px)}}
 </style>
 </head>
 <body>
@@ -82,7 +97,7 @@ const fogTexture=document.createElement('canvas');
 let lastWipe=-Infinity,fogFrame=0;
 const sceneOrder=[0,2,1,3,4];
 let albumTapTimer=null,albumPinchStarted=null;
-const info=[['Make a Wish.','Raise your palm to summon your birthday cake.'],['Love Me Forever?','Point to your answer.'],['Light a Candle.','Pinch your fingers together to light it; then blow into your microphone.'],['Birthday Memories.','Drag, swipe, or scroll to browse. In the air, pinch once to turn or twice to write.'],[futureText,'Write on the misted glass.']];
+const info=[['Make a Wish.','Raise your palm to summon your birthday cake.'],['Love Me Forever?','Point to your answer.'],['Light a Candle.','Pinch your fingers together to light it; then blow into your microphone.'],['Birthday Memories.','Eight moments, one birthday. Swipe slowly to see each photo in full.'],[futureText,'Write on the misted glass.']];
 function say(text){msg.textContent=text}function setScene(n){scene=Math.max(0,Math.min(4,n));sceneEntered=performance.now();wheelLast=-Infinity;clearTimeout(albumTapTimer);albumTapTimer=null;albumPinchStarted=null;cancelHandDrag();stage.dataset.scene=scene;$('next').textContent=scene===3?'FROSTED GLASS →':'NEXT';$('next').classList.toggle('secondary',scene!==3);resetCandle();if(scene===2){cake.style.left='50%';cake.style.top='65%'}if(scene===4)paintFog();$('photoBack').hidden=$('photoNext').hidden=scene!==3;$('next').hidden=scene===4;swipeAnchor=null;pinchAnchor=null;isDrawing=false;lastPoint=null;lastPinch=false;const [t,d]=info[scene];$('headline').textContent=t;$('description').textContent=d;cake.classList.toggle('show',scene===0||scene===2);choice.classList.toggle('show',scene===1);memory.style.display=scene===3?'block':'none';drawing.style.display=scene===4?'block':'none';$('uploadLabel').hidden=scene!==3;$('clear').classList.toggle('hidden',scene!==4);flame.classList.toggle('on',scene===2&&flame.dataset.lit==='true');if(scene===0){flame.dataset.lit='false';flame.classList.remove('on')}if(scene===3){renderPhotos();if(!stream)status.textContent='TAP TO PLAY'}if(scene===4)status.textContent='WRITE ON THE GLASS';say(['Show your palm to reveal the cake.','Point to YES to celebrate yourself.','Pinch to light, then blow out the candle.','Swipe left or right to browse the album.','Drag to draw on the ice, or pinch and move your hand.'][scene])}
 function paintFog(){
   cancelAnimationFrame(fogFrame);
@@ -92,23 +107,23 @@ function paintFog(){
   const mist=fogTexture.getContext('2d');
   mist.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
   const frost=mist.createLinearGradient(0,0,innerWidth,innerHeight);
-  frost.addColorStop(0,'rgba(208,235,247,.97)');
-  frost.addColorStop(.52,'rgba(167,206,225,.92)');
-  frost.addColorStop(1,'rgba(228,243,252,.98)');
+  frost.addColorStop(0,'rgba(247,251,252,.28)');
+  frost.addColorStop(.52,'rgba(237,246,249,.19)');
+  frost.addColorStop(1,'rgba(250,253,254,.29)');
   mist.fillStyle=frost;
   mist.fillRect(0,0,innerWidth,innerHeight);
   for(let i=0;i<100;i++){
     const x=Math.random()*innerWidth,y=Math.random()*innerHeight;
     const radius=28+Math.random()*105;
     const cloud=mist.createRadialGradient(x,y,0,x,y,radius);
-    cloud.addColorStop(0,'#f4fbff29');
+    cloud.addColorStop(0,'#ffffff19');
     cloud.addColorStop(1,'#f4fbff00');
     mist.fillStyle=cloud;
     mist.fillRect(x-radius,y-radius,radius*2,radius*2);
   }
   for(let i=0;i<Math.min(3700,innerWidth*innerHeight/145);i++){
     const size=.25+Math.random()*1.7;
-    mist.fillStyle=i%3?'#ffffff68':'#335a6f40';
+    mist.fillStyle=i%3?'#ffffff38':'#b8d3d820';
     mist.fillRect(Math.random()*innerWidth,Math.random()*innerHeight,size,size);
   }
   for(let i=0;i<160;i++){
@@ -116,11 +131,11 @@ function paintFog(){
     const size=.7+Math.random()*2.7;
     mist.beginPath();
     mist.ellipse(x,y,size,size*1.35,.18,0,Math.PI*2);
-    mist.fillStyle='#335e7650';
+    mist.fillStyle='#a3c7cf26';
     mist.fill();
     mist.beginPath();
     mist.ellipse(x-size*.22,y-size*.45,size*.48,size*.32,.18,0,Math.PI*2);
-    mist.fillStyle='#fafdffbd';
+    mist.fillStyle='#ffffff60';
     mist.fill();
   }
   canvasCtx.clearRect(0,0,innerWidth,innerHeight);
@@ -131,7 +146,7 @@ function returnFog(now){
   if(scene!==4||now>lastWipe+10500)return;
   if(now-lastWipe>3600){
     canvasCtx.save();
-    canvasCtx.globalAlpha=.02;
+    canvasCtx.globalAlpha=.009;
     canvasCtx.drawImage(fogTexture,0,0,innerWidth,innerHeight);
     canvasCtx.restore();
   }
@@ -148,7 +163,7 @@ function wipe(from,to,control=null){
   canvasCtx.shadowColor='#0009';
   canvasCtx.shadowBlur=7;
   canvasCtx.lineCap='round';
-  canvasCtx.lineWidth=Math.max(10,Math.min(17,innerWidth*.027));
+  canvasCtx.lineWidth=Math.max(11,Math.min(20,innerWidth*.029));
   canvasCtx.beginPath();
   canvasCtx.moveTo(from.x,from.y);
   if(control)canvasCtx.quadraticCurveTo(control.x,control.y,to.x,to.y);
@@ -200,7 +215,7 @@ drawing.onlostpointercapture=()=>{pointerStroke=null};
 $('uploadLabel').onclick=()=>$('photos').click();
 $('photoBack').onclick=()=>turnPhoto(-1);
 $('photoNext').onclick=()=>turnPhoto(1);
-const includedPhotos=["photos/IMG_0207.svg","photos/IMG_0216.svg","photos/IMG_0250.svg","photos/IMG_0217.svg","photos/IMG_0253.svg","photos/IMG_0245.svg","photos/IMG_0246.svg","photos/IMG_0244.svg","photos/IMG_0326.svg?v=1d8c121","photos/IMG_0352.svg?v=1d8c121","photos/Live_20261123230305571.svg?v=1d8c121","photos/birthday-wishes.svg"];
+const includedPhotos=["photos/IMG_0253.svg","photos/IMG_0207.svg","photos/IMG_0216.svg","photos/IMG_0217.svg","photos/IMG_0245.svg","photos/IMG_0250.svg","photos/IMG_0246.svg","photos/IMG_0244.svg"];
 photos=[...includedPhotos];
 let photoCards=[],drag=null;
 function renderPhotos(){
@@ -212,6 +227,7 @@ function renderPhotos(){
       const img=document.createElement('img');
       img.alt='Birthday memory '+(index+1);
       img.decoding='async';
+      img.onload=()=>{card.classList.toggle('landscape',img.naturalWidth>img.naturalHeight*1.05);card.classList.toggle('portrait',img.naturalHeight>=img.naturalWidth*1.05);};
       const caption=document.createElement('span');
       caption.textContent=(index+1)+' / '+photos.length;
       card.append(img,caption);
@@ -305,10 +321,25 @@ addEventListener('keydown',e=>{
   turnPhoto(e.key==='ArrowLeft'?-1:1);
 });
 $('photos').addEventListener('change',e=>{const files=[...e.target.files].filter(x=>x.type.startsWith('image/')).slice(0,60);if(!files.length)return;photoUrls.forEach(URL.revokeObjectURL);photoUrls=[];photos=[...includedPhotos,...files.map(f=>{const u=URL.createObjectURL(f);photoUrls.push(u);return u})];e.target.value='';photoCards=[];photoIndex=includedPhotos.length;renderPhotos();say(`${photos.length} personal photos loaded locally. Nothing was uploaded.`)});
+
+let airWriteAt17=0;
+function stabilizedAirStroke17(tip,now){
+  if(now-airWriteAt17<38) return;
+  airWriteAt17=now;
+  if(!lastPoint){lastPoint=extendStroke(null,tip);return;}
+  const prev=lastPoint.point;
+  const dx=tip.x-prev.x,dy=tip.y-prev.y,d=Math.hypot(dx,dy);
+  if(d<5.5)return; // reject fine hand tremor
+  if(d>125){finishStroke(lastPoint);lastPoint=extendStroke(null,tip);return;} // do not connect tracking jumps
+  const limited=Math.min(d,28);
+  const target={x:prev.x+dx/d*limited,y:prev.y+dy/d*limited};
+  lastPoint=extendStroke(lastPoint,target,.27); // 73% motion damping
+}
 function gesture(landmarks) {
   const now = performance.now();
 
   if (!landmarks || !landmarks.length) {
+    if(scene===4&&lastPoint)finishStroke(lastPoint);
     cursor.style.display = 'none';
     cursor.style.boxShadow = '';
     hand = null;
@@ -477,7 +508,7 @@ function gesture(landmarks) {
     if(pinch&&!pointerStroke){
       const tip=map({x:(pt.x+thumb.x)/2,y:(pt.y+thumb.y)/2});
       if(lastPoint&&Math.hypot(tip.x-lastPoint.point.x,tip.y-lastPoint.point.y)>Math.max(150,innerWidth*.32))lastPoint=null;
-      lastPoint=extendStroke(lastPoint,tip,.68);
+      stabilizedAirStroke17(tip,now);
     }else{
       finishStroke(lastPoint);
       lastPoint=null;
