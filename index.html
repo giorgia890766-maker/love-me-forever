@@ -97,7 +97,7 @@ const fogTexture=document.createElement('canvas');
 let lastWipe=-Infinity,fogFrame=0;
 const sceneOrder=[0,2,1,3,4];
 let albumTapTimer=null,albumPinchStarted=null;
-const info=[['Make a Wish.','Raise your palm to summon your birthday cake.'],['Love Me Forever?','Point to your answer.'],['Light a Candle.','Pinch your fingers together to light it; then blow into your microphone.'],['Birthday Memories.','Eight moments, one birthday. Swipe slowly to see each photo in full.'],[futureText,'Write on the misted glass.']];
+const info=[['Make a Wish.','Raise your palm to summon your birthday cake.'],['Love Me Forever?','Point to your answer.'],['Light a Candle.','Pinch your fingers together to light it; then blow into your microphone.'],['Birthday Memories.','Eleven moments, one birthday. Swipe slowly to see each photo in full.'],[futureText,'Write on the misted glass.']];
 function say(text){msg.textContent=text}function setScene(n){scene=Math.max(0,Math.min(4,n));sceneEntered=performance.now();wheelLast=-Infinity;clearTimeout(albumTapTimer);albumTapTimer=null;albumPinchStarted=null;cancelHandDrag();stage.dataset.scene=scene;$('next').textContent=scene===3?'FROSTED GLASS →':'NEXT';$('next').classList.toggle('secondary',scene!==3);resetCandle();if(scene===2){cake.style.left='50%';cake.style.top='65%'}if(scene===4)paintFog();$('photoBack').hidden=$('photoNext').hidden=scene!==3;$('next').hidden=scene===4;swipeAnchor=null;pinchAnchor=null;isDrawing=false;lastPoint=null;lastPinch=false;const [t,d]=info[scene];$('headline').textContent=t;$('description').textContent=d;cake.classList.toggle('show',scene===0||scene===2);choice.classList.toggle('show',scene===1);memory.style.display=scene===3?'block':'none';drawing.style.display=scene===4?'block':'none';$('uploadLabel').hidden=scene!==3;$('clear').classList.toggle('hidden',scene!==4);flame.classList.toggle('on',scene===2&&flame.dataset.lit==='true');if(scene===0){flame.dataset.lit='false';flame.classList.remove('on')}if(scene===3){renderPhotos();if(!stream)status.textContent='TAP TO PLAY'}if(scene===4)status.textContent='WRITE ON THE GLASS';say(['Show your palm to reveal the cake.','Point to YES to celebrate yourself.','Pinch to light, then blow out the candle.','Swipe left or right to browse the album.','Drag to draw on the ice, or pinch and move your hand.'][scene])}
 function paintFog(){
   cancelAnimationFrame(fogFrame);
@@ -215,7 +215,7 @@ drawing.onlostpointercapture=()=>{pointerStroke=null};
 $('uploadLabel').onclick=()=>$('photos').click();
 $('photoBack').onclick=()=>turnPhoto(-1);
 $('photoNext').onclick=()=>turnPhoto(1);
-const includedPhotos=["photos/IMG_0253.svg","photos/IMG_0207.svg","photos/IMG_0216.svg","photos/IMG_0217.svg","photos/IMG_0245.svg","photos/IMG_0250.svg","photos/IMG_0246.svg","photos/IMG_0244.svg"];
+const includedPhotos=["photos/IMG_0253.svg","photos/IMG_0207.svg","photos/IMG_0216.svg","photos/IMG_0217.svg","photos/IMG_0245.svg","photos/IMG_0250.svg","photos/IMG_0246.svg","photos/IMG_0244.svg","photos/IMG_0326.svg?v=1d8c121","photos/IMG_0352.svg?v=1d8c121","photos/Live_20261123230305571.svg?v=1d8c121"];
 photos=[...includedPhotos];
 let photoCards=[],drag=null;
 function renderPhotos(){
