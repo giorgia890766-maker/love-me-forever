@@ -27,7 +27,135 @@ function resize(){drawing.width=innerWidth*devicePixelRatio;drawing.height=inner
 const demoCaptions=['With love','The birthday table','My favorite people','Forever moments'];function renderPhotos(){memory.innerHTML='';const list=photos.length?photos:[null,null,null,null];const offsets=[[-170,-30,-19],[-80,8,11],[70,-15,13],[152,25,-15]];for(let i=0;i<Math.min(list.length,11);i++){let ix=((photoIndex+i)%list.length+list.length)%list.length;let div=document.createElement('div');div.className='photo';const o=offsets[i%4];const depth=i===0?0:i*18;const scale=i===0?1.12:Math.max(.58,1-i*.055);div.style.transform=`translate(calc(-50% + ${i===0?0:o[0]}px),calc(-50% + ${i===0?0:o[1]}px)) rotate(${i===0?-3:o[2]}deg) scale(${scale})`;div.style.zIndex=String(20-i);div.style.opacity=String(Math.max(.36,1-i*.07));div.style.filter=i===0?'none':'saturate(.75)';if(list[ix]){let img=document.createElement('img');img.src=list[ix];img.alt=`Birthday memory ${ix+1}`;div.append(img)}else{let e=document.createElement('div');e.className='empty';e.textContent=['YOUR STORY','YOUR FRIENDS','YOUR MOMENTS','YOUR LOVE'][ix%4];div.append(e)}let label=document.createElement('span');label.textContent=list[ix]?`Memory ${ix+1} of ${list.length}`:demoCaptions[ix%4];div.append(label);memory.append(div)}}
 function turnPhoto(direction){const count=photos.length||4;photoIndex=(photoIndex+direction+count)%count;renderPhotos();say(`Photo ${photoIndex+1} of ${count} · Swipe to browse`)}
 $('photos').addEventListener('change',e=>{photoUrls.forEach(URL.revokeObjectURL);photoUrls=[];const files=[...e.target.files].filter(x=>x.type.startsWith('image/')).slice(0,60);photos=files.map(f=>{const u=URL.createObjectURL(f);photoUrls.push(u);return u});photoIndex=0;renderPhotos();say(`${photos.length} personal photos loaded locally. Nothing was uploaded.`)});
-function gesture(landmarks){if(!landmarks||!landmarks.length){cursor.style.display='none';hand=null;lastPinch=false;lastPoint=null;isDrawing=false;return}const lm=landmarks[0];let pt=lm[8],thumb=lm[4],palm=lm[9],wrist=lm[0];const x=(1-pt.x)*innerWidth,y=pt.y*innerHeight;const d=Math.hypot(pt.x-thumb.x,pt.y-thumb.y),pinch=d<.065;cursor.style.display='block';cursor.style.left=`${x}px`;cursor.style.top=`${y}px`;cursor.style.background=pinch?'#fff0dd':'transparent';const now=performance.now();if(scene===0){const palmY=(palm.y+wrist.y)/2;if(palmY<.90&&lm[12].y<wrist.y){cake.classList.add('show');const cx=(1-palm.x)*innerWidth,cy=Math.min(innerHeight*.72,Math.max(innerHeight*.36,palm.y*innerHeight+140));cake.style.left=`${cx}px`;cake.style.top=`${cy}px`;say('Cake summoned! Pinch to continue.');if(pinch&&!lastPinch&&now-sceneEntered>1200)setScene(1)}}if(scene===1){const r=$('yes').getBoundingClientRect();const nr=$('no').getBoundingClientRect();if(x>nr.left-35&&x<nr.right+35&&y>nr.top-30&&y<nr.bottom+30){$('no').style.transform=`translate(${Math.random()*65-32}px,${Math.random()*50-25}px)`}if(pinch&&!lastPinch&&x>r.left-55&&x<r.right+55&&y>r.top-50&&y<r.bottom+50)setScene(2)}if(scene===2&&pinch&&!lastPinch){flame.dataset.lit='true';flame.classList.add('on');say('Make a wish… and blow toward the microphone to extinguish.')}if(scene===3){if(!swipeAnchor)swipeAnchor={x,time:now};if(Math.abs(x-swipeAnchor.x)>Math.min(90,innerWidth*.18)&&now-lastSwipe>340){turnPhoto(x<swipeAnchor.x?1:-1);lastSwipe=now;swipeAnchor={x,time:now}}else if(now-swipeAnchor.time>650){swipeAnchor={x,time:now}}}if(scene===4){if(pinch){if(!lastPoint){lastPoint={x,y}}else{const dx=x-lastPoint.x,dy=y-lastPoint.y;if(Math.hypot(dx,dy)<90){canvasCtx.beginPath();canvasCtx.moveTo(lastPoint.x,lastPoint.y);canvasCtx.lineTo(x,y);canvasCtx.stroke()}lastPoint={x,y}}}else lastPoint=null}lastPinch=pinch}
+function gesture(landmarks) {
+  if (!landmarks || !landmarks.length) {
+    cursor.style.display = 'none';
+    hand = null;
+    lastPinch = false;
+    lastPoint = null;
+    if (scene === 0) cake.classList.remove('show');
+    return;
+  }
+
+  const lm = landmarks[0];
+  const pt = lm[8];
+  const thumb = lm[4];
+  const palm = lm[9];
+  const wrist = lm[0];
+
+  const scale = Math.max(
+    innerWidth / cam.videoWidth,
+    innerHeight / cam.videoHeight
+  );
+
+  const vw = cam.videoWidth * scale;
+  const vh = cam.videoHeight * scale;
+
+  const map = p => ({
+    x: (1 - p.x) * vw + (innerWidth - vw) / 2,
+    y: p.y * vh + (innerHeight - vh) / 2
+  });
+
+  const distance = (a, b) => Math.hypot(
+    (a.x - b.x) * cam.videoWidth,
+    (a.y - b.y) * cam.videoHeight
+  );
+
+  const {x, y} = map(pt);
+  const center = map(palm);
+  const palmSize = Math.max(distance(palm, wrist), 1);
+  const ratio = distance(pt, thumb) / palmSize;
+
+  const pinch = ratio < (lastPinch ? 0.55 : 0.35);
+  const newPinch = pinch && !lastPinch;
+  const now = performance.now();
+
+  cursor.style.display = 'block';
+  cursor.style.left = x + 'px';
+  cursor.style.top = y + 'px';
+  cursor.style.background = pinch ? '#ffd78a' : 'transparent';
+  cursor.style.borderColor = pinch ? '#ffd78a' : '#fff5de';
+
+  status.textContent = 'V1.2 · ' + (pinch ? 'PINCH' : 'HAND DETECTED');
+
+  if (scene === 0) {
+    cake.classList.add('show');
+
+    const targetX = Math.max(120, Math.min(innerWidth - 120, center.x));
+    const targetY = Math.max(120, Math.min(innerHeight - 120, center.y - 110));
+
+    const oldX = parseFloat(cake.style.left) || targetX;
+    const oldY = parseFloat(cake.style.top) || targetY;
+
+    cake.style.left = (oldX + (targetX - oldX) * 0.25) + 'px';
+    cake.style.top = (oldY + (targetY - oldY) * 0.25) + 'px';
+
+    say('Hand detected · Move your hand. Pinch to continue.');
+
+    if (newPinch && now - sceneEntered > 1000) {
+      setScene(1);
+    }
+
+  } else if (scene === 1) {
+    const r = $('yes').getBoundingClientRect();
+    const nr = $('no').getBoundingClientRect();
+
+    if (x > nr.left - 35 && x < nr.right + 35 &&
+        y > nr.top - 30 && y < nr.bottom + 30) {
+      $('no').style.transform =
+        'translate(' + (Math.random() * 160 - 80) + 'px,' +
+        (Math.random() * 100 - 50) + 'px)';
+    }
+
+    if (newPinch &&
+        x > r.left - 55 && x < r.right + 55 &&
+        y > r.top - 50 && y < r.bottom + 50) {
+      setScene(2);
+      cake.style.left = '50%';
+      cake.style.top = '65%';
+    }
+
+  } else if (scene === 2) {
+    if (newPinch && now - sceneEntered > 500) {
+      flame.dataset.lit = 'true';
+      flame.classList.add('on');
+      say('Make a wish. Blow out the candle.');
+    }
+
+  } else if (scene === 3) {
+    if (!swipeAnchor) swipeAnchor = {x, time: now};
+
+    if (Math.abs(x - swipeAnchor.x) > 90 &&
+        now - lastSwipe > 450) {
+      turnPhoto(x < swipeAnchor.x ? 1 : -1);
+      lastSwipe = now;
+      swipeAnchor = {x, time: now};
+    } else if (now - swipeAnchor.time > 650) {
+      swipeAnchor = {x, time: now};
+    }
+
+  } else if (scene === 4) {
+    if (pinch) {
+      if (lastPoint) {
+        const dx = x - lastPoint.x;
+        const dy = y - lastPoint.y;
+
+        if (Math.hypot(dx, dy) < 90) {
+          canvasCtx.beginPath();
+          canvasCtx.moveTo(lastPoint.x, lastPoint.y);
+          canvasCtx.lineTo(x, y);
+          canvasCtx.stroke();
+        }
+      }
+      lastPoint = {x, y};
+    } else {
+      lastPoint = null;
+    }
+  }
+
+  lastPinch = pinch;
+}
+
 async function tracking(){
   try {
     status.textContent = 'V1.1 · AI LOADING';
