@@ -328,9 +328,10 @@ let airSeen18=0,airHeld18=0,airScene18=-1;
 function stabilizedAirStroke17(tip,now){
   if(!lastPoint){lastPoint=extendStroke(null,tip);return;}
   const prev=lastPoint.point,dx=tip.x-prev.x,dy=tip.y-prev.y,d=Math.hypot(dx,dy);
-  if(d<1.8)return;
-  const limited=Math.min(d,55);
-  lastPoint=extendStroke(lastPoint,{x:prev.x+dx/d*limited,y:prev.y+dy/d*limited},.48);
+  if(d<3.5)return;
+  const limited=Math.min(d-2,32);
+  const gain=Math.min(.65,.22+d/100);
+  lastPoint=extendStroke(lastPoint,{x:prev.x+dx/d*limited*gain,y:prev.y+dy/d*limited*gain},.75);
 }
 function gesture(landmarks) {
   const now = performance.now();
