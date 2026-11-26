@@ -175,73 +175,84 @@ function gesture(landmarks) {
       flame.classList.remove('on');
     }
 
-   } else if (scene === 2) {
+    } else if (scene === 2) {
     cake.classList.add('show');
 
-    flame.style.zIndex = '100';
-    flame.style.width = '18px';
-    flame.style.height = '30px';
-    flame.style.left = '108px';
-    flame.style.bottom = '182px';
-    flame.style.borderRadius = '50% 50% 45% 45%';
-    flame.style.transform = 'none';
-
-    if (flame.dataset.lit !== 'true') {
+    if (gesture.candleEntry !== sceneEntered) {
+      gesture.candleEntry = sceneEntered;
+      gesture.candleState = 'ready';
+      flame.dataset.lit = 'false';
+      flame.classList.remove('on');
       flame.style.display = 'none';
+      flame.getAnimations().forEach(a => a.cancel());
+    }
 
-      status.textContent = 'V1.4 · CANDLE READY';
-
-      say('Release your fingers, then pinch to light.');
+    if (gesture.candleState === 'ready') {
+      status.textContent = 'V1.4.2 · CANDLE READY';
+      say('Release, then hold your pinch to light.');
 
       if (confirmHold(true, 450)) {
+        gesture.candleState = 'lit';
         flame.dataset.lit = 'true';
+        lastBlow = Date.now() + 3000;
+
+        Object.assign(flame.style, {
+          display: 'block',
+          position: 'absolute',
+          zIndex: '100',
+          width: '18px',
+          height: '30px',
+          left: '110px',
+          bottom: '180px',
+          borderRadius: '50% 50% 45% 45%',
+          transform: 'none',
+          background: 'radial-gradient(ellipse at 50% 75%, #fff 5%, #fff2ae 30%, #ffbd48 65%, #ff7518 100%)',
+          boxShadow: '0 0 18px #ffd27a, 0 0 45px #ffae55'
+        });
+
         flame.classList.add('on');
-        lastBlow = Date.now() + 4000;
 
-        flame.style.background =
-          'radial-gradient(ellipse at 50% 75%, #ffffff 5%, #fff2ae 30%, #ffbd48 65%, #ff7518 100%)';
+        flame.animate([
+          { transform: 'scale(1, 1)' },
+          { transform: 'scale(.88, 1.12)' },
+          { transform: 'scale(1.06, .95)' },
+          { transform: 'scale(1, 1)' }
+        ], {
+          duration: 650,
+          iterations: Infinity
+        });
 
-        flame.style.boxShadow =
-          '0 0 18px #ffd27a, 0 0 45px #ffae55, 0 0 80px #ffb45a';
-
-        flame.style.display = 'block';
-
-        status.textContent = 'V1.4 · CANDLE LIT';
+        status.textContent = 'V1.4.2 · CANDLE LIT';
         say('Candle lit! Make a wish.');
+      }
 
-        if (flame.animate) {
-          flame.animate([
-            { transform: 'scale(1, 1)' },
-            { transform: 'scale(0.85, 1.12)' },
-            { transform: 'scale(1.08, 0.94)' },
-            { transform: 'scale(1, 1)' }
-          ], {
-            duration: 650,
-            iterations: Infinity
-          });
-        }
+    } else if (gesture.candleState === 'lit') {
+      if (flame.dataset.lit !== 'true') {
+        gesture.candleState = 'extinguished';
+        flame.style.display = 'none';
+        flame.getAnimations().forEach(a => a.cancel());
+        status.textContent = 'V1.4.2 · WISH MADE';
+        say('Wish made!');
+      } else {
+        status.textContent = 'V1.4.2 · CANDLE LIT';
+
+        say(Date.now() - lastBlow > 1000
+          ? 'Now blow gently into your microphone.'
+          : 'Make a wish. Keep quiet for a moment.');
       }
 
     } else {
-      flame.style.display = 'block';
-      status.textContent = 'V1.4 · CANDLE LIT';
-
-      if (Date.now() - lastBlow > 1000) {
-        say('Now blow gently into your microphone.');
-      } else {
-        say('Make a wish. Keep quiet for a moment.');
-      }
-    }
-
-      } else {
-        say('Make a wish. Keep quiet for a moment.');
-      }
+      flame.style.display = 'none';
+      status.textContent = 'V1.4.2 · WISH MADE';
     }
 
   } else if (scene === 3) {
-    if (!swipeAnchor) swipeAnchor = {x, time: now};
-  } else if (scene === 3) {
-    if (!swipeAnchor) swipeAnchor = {x, time: now};
+    flame.style.display = 'none';
+    flame.getAnimations().forEach(a => a.cancel());
+
+    if (!swipeAnchor) {
+      swipeAnchor = {x, time: now};
+    }
 
     if (Math.abs(x - swipeAnchor.x) > 90 &&
         now - lastSwipe > 450) {
@@ -252,7 +263,7 @@ function gesture(landmarks) {
       swipeAnchor = {x, time: now};
     }
 
-  } else if (scene === 4) {
+ } else if (scene === 4) {
     if (pinch) {
       if (lastPoint &&
           Math.hypot(x - lastPoint.x, y - lastPoint.y) < 90) {
