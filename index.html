@@ -217,6 +217,7 @@ $('photoBack').onclick=()=>turnPhoto(-1);
 $('photoNext').onclick=()=>turnPhoto(1);
 const includedPhotos=["photos/IMG_0253.svg","photos/IMG_0207.svg","photos/IMG_0216.svg","photos/IMG_0217.svg","photos/IMG_0245.svg","photos/IMG_0250.svg","photos/IMG_0246.svg","photos/IMG_0244.svg","photos/IMG_0326.svg?v=1d8c121","photos/IMG_0352.svg?v=1d8c121","photos/Live_20261123230305571.svg?v=1d8c121"];
 photos=[...includedPhotos];
+const birthdayWishPhoto=new Image();birthdayWishPhoto.onload=()=>{const path='photos/birthday-wishes.webp';if(!includedPhotos.includes(path)){includedPhotos.push(path);photos.splice(11,0,path);info[3][1]='Twelve moments, one birthday. Swipe slowly to see each photo in full.';if(scene===3){$('description').textContent=info[3][1];renderPhotos();}}};birthdayWishPhoto.src='photos/birthday-wishes.webp';
 let photoCards=[],drag=null;
 function renderPhotos(){
   if(photoCards.length!==photos.length){
