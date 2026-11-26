@@ -13,6 +13,17 @@
 .flame.on{animation:flicker .58s ease-in-out infinite alternate}@keyframes flicker{to{transform:scale(.83,1.13) rotate(-5deg)}}
 [hidden]{display:none!important}.stage[data-scene="4"] .chapter{visibility:hidden}.stage[data-scene="4"] .drawCanvas{pointer-events:auto;touch-action:none}.stage[data-scene="4"] .message{z-index:6}
 @media(prefers-reduced-motion:reduce){.flame.on{animation:none}}
+.stage[data-scene="3"] .chapter{padding-top:clamp(46px,9dvh,94px)}
+.stage[data-scene="3"] .chapter h2{font-size:clamp(34px,6vw,64px)}
+.memories{inset:22% 0 24%;pointer-events:auto;touch-action:pan-y;cursor:grab;user-select:none;--drag:0px}
+.memories.dragging{cursor:grabbing}
+.memories .photo{width:min(61vw,55dvh,420px);height:100%;aspect-ratio:auto;top:50%;padding:7px 7px 24px;left:50%;pointer-events:none;opacity:0;transform:translate(calc(-50% + var(--offset) + var(--drag)),-50%) rotate(var(--angle)) scale(.69);transition:transform .46s cubic-bezier(.22,.79,.25,1),opacity .32s ease;}
+.memories .photo img{object-fit:contain;background:#e7ddd0;-webkit-user-drag:none}
+.memories .photo.current{opacity:1;transform:translate(calc(-50% + var(--drag)),-50%) scale(1);z-index:2}
+.memories .photo.neighbor{opacity:.55;z-index:1}
+.memories.dragging .photo,.memories .photo.reposition{transition:none}
+@media(max-height:580px){.memories{inset:27% 0 32%}}
+@media(prefers-reduced-motion:reduce){.memories .photo{transition:none}}
 </style>
 </head>
 <body>
@@ -21,15 +32,15 @@
 <div class="veil"></div>
 <header class="topbar"><span class="brand">LOVE ME FOREVER.</span><span class="status" id="status">CAMERA OFF</span></header>
 <section class="welcome" id="welcome"><div class="eyebrow">AN INTERACTIVE BIRTHDAY STORY</div><h1>Happy Birthday<br><i>to Me.</i></h1><p class="subtitle">A little ritual for everything I've been, everyone I love, and everything still to come.</p><button class="btn" id="start">BEGIN THE EXPERIENCE</button><button class="btn secondary" id="manualStart" style="margin-top:12px">PLAY WITHOUT CAMERA</button><div class="hint">Use your camera for hand gestures, or play with clicks and taps.</div></section>
-<div class="overlay" id="overlay"><div class="artwork"><div class="bubble"></div><div class="cake" id="cake"><div class="plate"></div><div class="base"></div><div class="icing"></div><div class="tree a"></div><div class="tree b"></div><div class="tree c"></div><div class="candle"></div><div class="flame" id="flame"></div></div><div class="choice" id="choice"><button class="btn" id="yes">YES, ALWAYS</button><button class="btn secondary" id="no">NO</button></div><div class="memories" id="memories"></div></div><div class="chapter"><h2 id="headline">Make a Wish.</h2><p id="description">Raise your palm to summon your birthday cake.</p></div><canvas class="drawCanvas" id="drawing"></canvas><div class="cursor" id="cursor"></div><div class="message" id="message">Loading hand-tracking model…</div><div class="controls"><button class="btn secondary" id="prev">BACK</button><button class="btn secondary" id="next">NEXT</button><button class="btn secondary" id="candleAction" hidden>LIGHT CANDLE</button><button class="btn secondary" id="photoBack" hidden>PREVIOUS PHOTO</button><button class="btn secondary" id="photoNext" hidden>NEXT PHOTO</button><button class="btn secondary" id="uploadLabel" hidden>ADD PHOTOS</button><input class="upload" type="file" id="photos" accept="image/*" multiple/><button class="btn secondary" id="record">● RECORD</button><button class="btn secondary hidden" id="clear">CLEAR WRITING</button></div></div>
+<div class="overlay" id="overlay"><div class="artwork"><div class="bubble"></div><div class="cake" id="cake"><div class="plate"></div><div class="base"></div><div class="icing"></div><div class="tree a"></div><div class="tree b"></div><div class="tree c"></div><div class="candle"></div><div class="flame" id="flame"></div></div><div class="choice" id="choice"><button class="btn" id="yes">YES, ALWAYS</button><button class="btn secondary" id="no">NO</button></div><div class="memories" id="memories"></div></div><div class="chapter"><h2 id="headline">Make a Wish.</h2><p id="description">Raise your palm to summon your birthday cake.</p></div><canvas class="drawCanvas" id="drawing"></canvas><div class="cursor" id="cursor"></div><div class="message" id="message" aria-live="polite">Loading hand-tracking model…</div><div class="controls"><button class="btn secondary" id="prev">BACK</button><button class="btn secondary" id="next">NEXT</button><button class="btn secondary" id="candleAction" hidden>LIGHT CANDLE</button><button class="btn secondary" id="photoBack" hidden>PREVIOUS PHOTO</button><button class="btn secondary" id="photoNext" hidden>NEXT PHOTO</button><button class="btn secondary" id="uploadLabel" hidden>ADD PHOTOS</button><input class="upload" type="file" id="photos" accept="image/*" multiple/><button class="btn secondary" id="record">● RECORD</button><button class="btn secondary hidden" id="clear">CLEAR WRITING</button></div></div>
 </main>
 <script type="module">
 const $=id=>document.getElementById(id);const stage=$('stage'),cam=$('camera'),msg=$('message'),status=$('status'),cake=$('cake'),flame=$('flame'),choice=$('choice'),memory=$('memories'),drawing=$('drawing'),cursor=$('cursor');
 const sceneNames=['CAKE','LOVE','CANDLE','MEMORIES','FUTURE'];let scene=0;let hand=null,lastHand=null,photos=[],photoIndex=0,stream=null,micStream=null,analyser=null,recorder=null,recordParts=[],lastSwipe=0,lastBlow=0,isDrawing=false,lastPoint=null,canvasCtx=null,handModel=null,modelReady=false,detectBusy=false,videoLastTime=-1,sceneEntered=0;let lastPinch=false,swipeAnchor=null,pinchAnchor=null,photoUrls=[];
 let candleState='ready', candleLitAt=0, micState='off', micContext=null, blowStart=null;
 const futureText='The Best Is Yet to Come.';
-const info=[['Make a Wish.','Raise your palm to summon your birthday cake.'],['Love Me Forever?','Point to your answer.'],['Light a Candle.','Pinch your fingers together to light it; then blow into your microphone.'],['Birthday Memories.','Upload your own photos. Move your index finger horizontally to turn the pages.'],[futureText,'Write on the misted glass.']];
-function say(text){msg.textContent=text}function setScene(n){scene=Math.max(0,Math.min(4,n));sceneEntered=performance.now();stage.dataset.scene=scene;resetCandle();if(scene===2){cake.style.left='50%';cake.style.top='65%'}if(scene===4)paintFog();$('photoBack').hidden=$('photoNext').hidden=scene!==3;$('next').hidden=scene===4;swipeAnchor=null;pinchAnchor=null;isDrawing=false;lastPoint=null;lastPinch=false;const [t,d]=info[scene];$('headline').textContent=t;$('description').textContent=d;cake.classList.toggle('show',scene===0||scene===2);choice.classList.toggle('show',scene===1);memory.style.display=scene===3?'block':'none';drawing.style.display=scene===4?'block':'none';$('uploadLabel').hidden=scene!==3;$('clear').classList.toggle('hidden',scene!==4);flame.classList.toggle('on',scene===2&&flame.dataset.lit==='true');if(scene===0){flame.dataset.lit='false';flame.classList.remove('on')}if(scene===3){renderPhotos();if(!stream)status.textContent='TAP TO PLAY'}if(scene===4)status.textContent='WRITE ON THE GLASS';say(['Show your palm to reveal the cake.','Point to YES to celebrate yourself.','Pinch to light, then blow out the candle.','Upload photos and swipe your index finger left or right.','Pinch and move, or drag across the glass. Reveal a message or write your own.'][scene])}
+const info=[['Make a Wish.','Raise your palm to summon your birthday cake.'],['Love Me Forever?','Point to your answer.'],['Light a Candle.','Pinch your fingers together to light it; then blow into your microphone.'],['Birthday Memories.','Swipe, drag, or use the arrow keys to turn the pages.'],[futureText,'Write on the misted glass.']];
+function say(text){msg.textContent=text}function setScene(n){scene=Math.max(0,Math.min(4,n));sceneEntered=performance.now();stage.dataset.scene=scene;resetCandle();if(scene===2){cake.style.left='50%';cake.style.top='65%'}if(scene===4)paintFog();$('photoBack').hidden=$('photoNext').hidden=scene!==3;$('next').hidden=scene===4;swipeAnchor=null;pinchAnchor=null;isDrawing=false;lastPoint=null;lastPinch=false;const [t,d]=info[scene];$('headline').textContent=t;$('description').textContent=d;cake.classList.toggle('show',scene===0||scene===2);choice.classList.toggle('show',scene===1);memory.style.display=scene===3?'block':'none';drawing.style.display=scene===4?'block':'none';$('uploadLabel').hidden=scene!==3;$('clear').classList.toggle('hidden',scene!==4);flame.classList.toggle('on',scene===2&&flame.dataset.lit==='true');if(scene===0){flame.dataset.lit='false';flame.classList.remove('on')}if(scene===3){renderPhotos();if(!stream)status.textContent='TAP TO PLAY'}if(scene===4)status.textContent='WRITE ON THE GLASS';say(['Show your palm to reveal the cake.','Point to YES to celebrate yourself.','Pinch to light, then blow out the candle.','Swipe left or right to browse the album.','Pinch and move, or drag across the glass. Reveal a message or write your own.'][scene])}
 function paintFog(){
   canvasCtx.globalCompositeOperation='source-over';
   canvasCtx.clearRect(0,0,innerWidth,innerHeight);
@@ -88,12 +99,75 @@ drawing.onlostpointercapture=()=>{pointerStroke=null};
 $('uploadLabel').onclick=()=>$('photos').click();
 $('photoBack').onclick=()=>turnPhoto(-1);
 $('photoNext').onclick=()=>turnPhoto(1);
-// Add repository-relative paths here to include photos for all visitors.
-const includedPhotos=[];
+const includedPhotos=["photos/IMG_0207.svg","photos/IMG_0216.svg","photos/IMG_0250.svg","photos/IMG_0217.svg","photos/IMG_0253.svg","photos/IMG_0245.svg","photos/IMG_0246.svg","photos/IMG_0244.svg","photos/IMG_0326.svg","photos/IMG_0352.svg","photos/Live_20261123230305571.svg"];
 photos=[...includedPhotos];
-const demoCaptions=['With love','The birthday table','My favorite people','Forever moments'];function renderPhotos(){memory.innerHTML='';const list=photos.length?photos:[null,null,null,null];const offsets=[[-170,-30,-19],[-80,8,11],[70,-15,13],[152,25,-15]];for(let i=0;i<Math.min(list.length,11);i++){let ix=((photoIndex+i)%list.length+list.length)%list.length;let div=document.createElement('div');div.className='photo';const o=offsets[i%4];const depth=i===0?0:i*18;const scale=i===0?1.12:Math.max(.58,1-i*.055);div.style.transform=`translate(calc(-50% + ${i===0?0:o[0]}px),calc(-50% + ${i===0?0:o[1]}px)) rotate(${i===0?-3:o[2]}deg) scale(${scale})`;div.style.zIndex=String(20-i);div.style.opacity=String(Math.max(.36,1-i*.07));div.style.filter=i===0?'none':'saturate(.75)';if(list[ix]){let img=document.createElement('img');img.src=list[ix];img.alt=`Birthday memory ${ix+1}`;div.append(img)}else{let e=document.createElement('div');e.className='empty';e.textContent=['YOUR STORY','YOUR FRIENDS','YOUR MOMENTS','YOUR LOVE'][ix%4];div.append(e)}let label=document.createElement('span');label.textContent=list[ix]?`Memory ${ix+1} of ${list.length}`:demoCaptions[ix%4];div.append(label);memory.append(div)}}
-function turnPhoto(direction){const count=photos.length||4;photoIndex=(photoIndex+direction+count)%count;renderPhotos();say(`Photo ${photoIndex+1} of ${count} · Swipe to browse`)}
-$('photos').addEventListener('change',e=>{const files=[...e.target.files].filter(x=>x.type.startsWith('image/')).slice(0,60);if(!files.length)return;photoUrls.forEach(URL.revokeObjectURL);photoUrls=[];photos=[...includedPhotos,...files.map(f=>{const u=URL.createObjectURL(f);photoUrls.push(u);return u})];e.target.value='';photoIndex=0;renderPhotos();say(`${photos.length} personal photos loaded locally. Nothing was uploaded.`)});
+let photoCards=[],drag=null;
+function renderPhotos(){
+  if(photoCards.length!==photos.length){
+    memory.replaceChildren();
+    photoCards=photos.map((url,index)=>{
+      const card=document.createElement('div');
+      card.className='photo';
+      const img=document.createElement('img');
+      img.alt='Birthday memory '+(index+1);
+      img.decoding='async';
+      const caption=document.createElement('span');
+      caption.textContent=(index+1)+' / '+photos.length;
+      card.append(img,caption);
+      memory.append(card);
+      return {card,img,url,offset:null};
+    });
+  }
+  const count=photoCards.length;
+  photoCards.forEach(item=>item.card.classList.remove('reposition'));
+  photoCards.forEach(({card,img,url,offset},index)=>{
+    const forward=(index-photoIndex+count)%count;
+    const step=forward>count/2?forward-count:forward;
+    const side=Math.sign(step);
+    if(offset!==null&&Math.abs(step-offset)>1)card.classList.add('reposition');
+    photoCards[index].offset=step;
+    card.style.setProperty('--offset',side===0?'0px':(side<0?'max(-36vw,-300px)':'min(36vw,300px)'));
+    card.style.setProperty('--angle',side*8+'deg');
+    card.classList.toggle('current',step===0);
+    card.classList.toggle('neighbor',Math.abs(step)===1);
+    card.setAttribute('aria-hidden',String(step!==0));
+    if(Math.abs(step)<=2&&!img.hasAttribute('src'))img.src=url;
+  });
+}
+function turnPhoto(direction){
+  if(scene!==3)return;
+  photoIndex=(photoIndex+direction+photos.length)%photos.length;
+  renderPhotos();
+  say('Photo '+(photoIndex+1)+' of '+photos.length+' · Swipe to browse');
+}
+function dragOffset(value){memory.style.setProperty('--drag',value+'px')}
+memory.onpointerdown=e=>{
+  if(!e.isPrimary||e.button!==0)return;
+  drag={id:e.pointerId,x:e.clientX,y:e.clientY,at:performance.now()};
+  memory.setPointerCapture(e.pointerId);
+  memory.classList.add('dragging');
+};
+memory.onpointermove=e=>{
+  if(drag?.id!==e.pointerId)return;
+  dragOffset(Math.max(-180,Math.min(180,e.clientX-drag.x)));
+};
+function endPhotoDrag(e,commit){
+  if(drag?.id!==e.pointerId)return;
+  const dx=e.clientX-drag.x,dy=e.clientY-drag.y;
+  const threshold=performance.now()-drag.at<270?32:Math.min(82,innerWidth*.15);
+  drag=null;
+  memory.classList.remove('dragging');
+  dragOffset(0);
+  if(commit&&Math.abs(dx)>=threshold&&Math.abs(dx)>Math.abs(dy))turnPhoto(dx<0?1:-1);
+}
+memory.onpointerup=e=>endPhotoDrag(e,true);
+memory.onpointercancel=memory.onlostpointercapture=e=>endPhotoDrag(e,false);
+addEventListener('keydown',e=>{
+  if(scene!==3||!['ArrowLeft','ArrowRight'].includes(e.key))return;
+  e.preventDefault();
+  turnPhoto(e.key==='ArrowLeft'?-1:1);
+});
+$('photos').addEventListener('change',e=>{const files=[...e.target.files].filter(x=>x.type.startsWith('image/')).slice(0,60);if(!files.length)return;photoUrls.forEach(URL.revokeObjectURL);photoUrls=[];photos=[...includedPhotos,...files.map(f=>{const u=URL.createObjectURL(f);photoUrls.push(u);return u})];e.target.value='';photoCards=[];photoIndex=includedPhotos.length;renderPhotos();say(`${photos.length} personal photos loaded locally. Nothing was uploaded.`)});
 function gesture(landmarks) {
   const now = performance.now();
 
@@ -101,6 +175,7 @@ function gesture(landmarks) {
     cursor.style.display = 'none';
     cursor.style.boxShadow = '';
     hand = null;
+    swipeAnchor = null;
     lastPinch = false;
     pinchAnchor = null;
     lastPoint = null;
@@ -255,7 +330,7 @@ function gesture(landmarks) {
   } else if (scene === 3) {
     if (!swipeAnchor) swipeAnchor = {x, time: now};
 
-    if (Math.abs(x - swipeAnchor.x) > 90 &&
+    if (!drag && Math.abs(x - swipeAnchor.x) > Math.min(90, innerWidth * .19) &&
         now - lastSwipe > 450) {
       turnPhoto(x < swipeAnchor.x ? 1 : -1);
       lastSwipe = now;
